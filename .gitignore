@@ -17,6 +17,9 @@ models/
 .DS_Store
 Thumbs.db
 
+# Local project instructions
+instructions.md
+
 # NOTE: logs/ and results/ are deliberately NOT ignored. Your audit log and
 # your attack runs are evidence, and they're part of what gets graded.
 # Commit them.
