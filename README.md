@@ -49,6 +49,12 @@
 
 The planned appeal path starts when a writer sends a `content_id` and reasoning to `POST /appeal`. The service verifies that the content exists, appends the appeal to the audit log with status `under_review`, and returns a confirmation without automatically re-checking the text.
 
+### False-positive trace
+
+Consider a real writer who submits a plain, carefully edited paragraph. The model signal may score it as AI-like because its familiar words and predictable sentences produce low perplexity. The style signal may also score it as AI-like if the sentences have similar lengths and the vocabulary repeats. Suppose the combining rule produces an illustrative confidence score of `0.72`; with the current placeholder threshold of `0.65`, the reader would see the high-confidence AI label.
+
+That is the expensive failure: the writer is being accused even though the work is theirs. The response gives them the `content_id`, score, and label, so they can send that ID and their reasoning to `POST /appeal`. The service records the appeal beside the original decision and changes the status to `under_review`. It does not silently replace the original decision or automatically re-check the writing. The thresholds and combining rule must therefore be chosen with this false-positive path in mind, especially for plain human writing.
+
 ### Endpoint contracts
 
 `POST /submit` request:
