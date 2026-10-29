@@ -44,11 +44,9 @@ Two things worth knowing before you pick numbers:
 ---
 ## 1.
 
-<!-- Your criterion. It must name a number. -->
+Across each of three evaluation trials, no more than 1 of 10 submissions that I identify as human-written may receive the high-confidence AI label.
 
-
-
-**Why this target:**
+**Why this target:** A false positive publicly questions a real writer's authorship. I accept that some AI-written text may pass through, because protecting human writers matters more than maximizing accusations.
 
 
 
@@ -56,11 +54,9 @@ Two things worth knowing before you pick numbers:
 
 ## 2.
 
-<!-- Your criterion. -->
+In each evaluation trial, the average combined score for the clearly-AI test set must be at least 0.25 higher than the average combined score for the clearly-human test set.
 
-
-
-**Why this target:**
+**Why this target:** The two signals are useful only if they produce meaningful separation. A 0.25 gap gives the thresholds room to distinguish confident cases while leaving an unsure band for disagreement and borderline writing.
 
 
 
@@ -68,11 +64,9 @@ Two things worth knowing before you pick numbers:
 
 ## 3.
 
-<!-- Your criterion. -->
+Within one evaluation run, at least one submission must receive each of the three labels—high-confidence human, unsure, and high-confidence AI—and each label must correspond to a non-overlapping score range defined by the configured thresholds.
 
-
-
-**Why this target:**
+**Why this target:** The service must represent uncertainty instead of forcing every submission into an accusation or a clearance. A reachable unsure range is especially important when the model and style signals disagree.
 
 
 
@@ -80,11 +74,9 @@ Two things worth knowing before you pick numbers:
 
 ## 4.
 
-<!-- Your criterion. -->
+For 5 out of 5 valid appeals, `POST /appeal` must return a success response, preserve the submitted `content_id` and reasoning, append an appeal entry to `logs/audit.jsonl`, and show the item with status `under_review` in `GET /log`.
 
-
-
-**Why this target:**
+**Why this target:** An appeal is the writer's safeguard against a false accusation. Recording every appeal and changing the status makes the response auditable instead of leaving the writer with an unsupported promise that someone will review it.
 
 
 
@@ -92,11 +84,9 @@ Two things worth knowing before you pick numbers:
 
 ## 5.
 
-<!-- Your criterion. -->
+For 10 checks—five requests with missing or empty `text` and five requests whose text exceeds the service's documented maximum—the service must return a client-error response (`4xx`), must not return a confidence label, and must not create a `decided` audit entry.
 
-
-
-**Why this target:**
+**Why this target:** Invalid input should fail clearly at the boundary rather than crash the detector or create a misleading decision. Rejecting oversized text also protects the local model from unnecessary work and keeps the service's resource limits observable.
 
 
 
