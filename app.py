@@ -214,6 +214,13 @@ def submit():
             "error": "missing_fields",
             "message": "POST /submit requires text and creator_id.",
         }), 400
+    if not text.strip():
+        return jsonify({"error": "empty_text", "message": "text must not be empty."}), 400
+    if len(text) > config.MAX_TEXT_CHARS:
+        return jsonify({
+            "error": "text_too_long",
+            "message": f"text must be at most {config.MAX_TEXT_CHARS} characters.",
+        }), 400
 
     content_id = str(uuid.uuid4())
     model_score = detector.model_signal(text)

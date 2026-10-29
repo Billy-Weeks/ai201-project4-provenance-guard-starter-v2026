@@ -39,7 +39,7 @@
 <!-- The path a submission takes, from arriving to the label a reader sees.
      Six or seven steps — this is the trace you wrote in Milestone 1. -->
 
-1. A writer sends text and a `creator_id` to `POST /submit` as JSON.
+1. A writer sends text and a `creator_id` to `POST /submit` as JSON. The route rejects missing fields, empty text, or text longer than `config.MAX_TEXT_CHARS` (10,000 characters) with a `400` before any signal runs.
 2. The route creates a unique `content_id` so the submission can be audited and appealed later.
 3. The detector signal in `detector.py` reads the text for meaning and predictability, then returns a model score from 0 to 1. A higher score means more likely AI-generated.
 4. The style signal in `stylometry.py` measures the text’s structure, including sentence-length spread, vocabulary variety, and punctuation density, and returns a style score from 0 to 1.
@@ -47,11 +47,11 @@
 6. `scoring.py::score_to_label` maps that score to one of three reader-facing labels: high-confidence human, unsure, or high-confidence AI.
 7. The service writes the decision and its signal scores to `logs/audit.jsonl`, then returns the `content_id`, guess, confidence, label, and both signal scores to the caller.
 
-The planned appeal path starts when a writer sends a `content_id` and reasoning to `POST /appeal`. The service verifies that the content exists, appends the appeal to the audit log with status `under_review`, and returns a confirmation without automatically re-checking the text.
+The appeal path starts when a writer sends a `content_id` and reasoning to `POST /appeal`. The service verifies that the content exists, appends the appeal to the audit log with status `under_review`, and returns a confirmation without automatically re-checking the text.
 
 ### False-positive trace
 
-Consider a real writer who submits a plain, carefully edited paragraph. The model signal may score it as AI-like because its familiar words and predictable sentences produce low perplexity. The style signal may also score it as AI-like if the sentences have similar lengths and the vocabulary repeats. Suppose the combining rule produces an illustrative confidence score of `0.72`; with the current placeholder threshold of `0.65`, the reader would see the high-confidence AI label.
+Consider a real writer who submits a plain, carefully edited paragraph. The model signal may score it as AI-like because its familiar words and predictable sentences produce low perplexity. The style signal may also score it as AI-like if the sentences have similar lengths and the vocabulary repeats. Suppose the combining rule produces an illustrative confidence score of `0.72`; with the AI threshold of `0.65`, the reader would see the high-confidence AI label.
 
 That is the expensive failure: the writer is being accused even though the work is theirs. The response gives them the `content_id`, score, and label, so they can send that ID and their reasoning to `POST /appeal`. The service records the appeal beside the original decision and changes the status to `under_review`. It does not silently replace the original decision or automatically re-check the writing. The thresholds and combining rule must therefore be chosen with this false-positive path in mind, especially for plain human writing.
 
@@ -141,7 +141,7 @@ That is the expensive failure: the writer is being accused even though the work 
 
 **A case where my two signals split, and what my rule does with it:**
 
-For a disagreement case such as plain, formal human writing, the model may produce a relatively high AI-like score because the wording is predictable while the style signal may produce a lower score because sentence lengths and vocabulary vary. The weighted average reduces the model score's effect slightly when the style signal reads the surface form as human-like, while preserving the model as the more influential signal.
+In the first calibration run, the formal-human sample split the signals. The model read it as human-like (`model_score` `0.2361`) because its wording was not especially predictable, while the style signal read it as AI-like (`style_score` `0.6715`) because its sentences were even in length and its punctuation was sparse. The weighted average gave `0.6 * 0.2361 + 0.4 * 0.6715 = 0.4103`, which lands in the unsure band. The rule leans toward the model signal, so a strongly human-like model reading keeps an AI-looking surface shape from producing an accusation by itself. In this case, though, it did not clear the writer either; the result was "unsure," with the appeal path available.
 
 ### Milestone 4 calibration results
 
@@ -192,6 +192,33 @@ The clearly-AI and clearly-human combined scores were `0.2957` apart in this fol
      written every word themselves. -->
 
 The unsure label states that the service lacks confidence and gives the writer a clear next step. It does not accuse the writer or present the score as proof of authorship.
+
+**All three labels are reachable.** Each one appears in `logs/audit.jsonl` with `status: "decided"`:
+
+| Label | `creator_id` | Combined score |
+|---|---|---:|
+| high-confidence human | `m5-casual-human` | 0.1341 |
+| unsure | `m5-human` | 0.4010 |
+| high-confidence AI | `m5-formal-human` | 0.6662 |
+
+The high-confidence human result came from this request:
+
+```bash
+$ curl -X POST http://127.0.0.1:5000/submit \
+  -H "Content-Type: application/json" \
+  -d '{"text": "ugh. missed the bus AGAIN — third time this week!! Grandpa'"'"'s old Buick, rusted, coughing smoke; we pushed it two blocks? Then Marisol laughed so hard she snorted coffee everywhere. Anyway: tacos.", "creator_id": "m5-casual-human"}'
+```
+
+```json
+{
+  "confidence": 0.1341,
+  "content_id": "9321258a-5428-46ba-9bcc-ed25cd02d2e9",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.0497,
+  "style_score": 0.2608
+}
+```
 
 
 ---
@@ -278,17 +305,17 @@ $ curl "http://127.0.0.1:5000/log?limit=2"
 
 ## How I Used AI
 
-**Moment 1**
+**Moment 1 — implementing and calibrating the style signal**
 
-- *What I asked for:* Help reviewing whether my acceptance criteria were measurable and testable.
-- *What came back:* Suggestions for numeric targets and observable outcomes.
-- *What I changed:* I selected and edited the criteria I wanted to use in `criteria.md`.
+- *What I asked for:* I asked the AI to implement the second signal in `stylometry.py` and connect it to the detector in `scoring.py::combine_signals`, while keeping both scores visible in the response and audit log.
+- *What came back:* It implemented sentence-length spread, type-token ratio, and punctuation density; normalized them into a style score where higher means more AI-like; and combined the model and style scores with weights of `0.60` and `0.40`.
+- *What I changed:* I ran the four calibration samples instead of accepting the result without testing it. The first set separated clearly-AI and clearly-human text by only `0.0306`, so I ran longer, same-topic samples; that increased the gap to `0.2957`. I documented both runs and the remaining formal-human blind spot in `README.md`.
 
-**Moment 2**
+**Moment 2 — final review against the rubric**
 
-- *What I asked for:* Help implementing the second signal and combining it with the detector score.
-- *What came back:* A stylometry implementation and a weighted scoring rule.
-- *What I changed:* I ran calibration tests, compared the results, and documented the limitations in `README.md`.
+- *What I asked for:* A check of the finished project against the unit instructions and rubric.
+- *What came back:* Three gaps. No submission had reached the high-confidence human label. My "signals split" paragraph described the opposite of my own calibration data. Criterion 5 referred to a "documented maximum" text length that did not exist, and empty text was being scored instead of rejected.
+- *What I changed:* I had the AI fix all three, and I reviewed each edit before committing. A text submission reached the human label (`0.1341`) and was added under Label Variants. The disagreement paragraph was rewritten around the real formal-human numbers. `MAX_TEXT_CHARS = 10000` was added to `config.py`, along with a check in `app.py::submit` that returns `400` for empty or oversized text, and criterion 5 now names that limit.
 
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 

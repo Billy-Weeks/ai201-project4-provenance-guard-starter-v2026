@@ -44,7 +44,7 @@ Two things worth knowing before you pick numbers:
 ---
 ## 1.
 
-Across each of three evaluation trials, no more than 1 of 10 submissions that I identify as human-written may receive the high-confidence AI label.
+Across each of three evaluation trials, no more than 1 of 10 paragraphs that I wrote myself (listed under criterion 1 in `scenarios.py`) may receive the high-confidence AI label.
 
 **Why this target:** A false positive publicly questions a real writer's authorship. I accept that some AI-written text may pass through, because protecting human writers matters more than maximizing accusations.
 
@@ -54,7 +54,7 @@ Across each of three evaluation trials, no more than 1 of 10 submissions that I 
 
 ## 2.
 
-In each evaluation trial, the average combined score for the clearly-AI test set must be at least 0.25 higher than the average combined score for the clearly-human test set.
+In each evaluation trial, the average combined score (`confidence`) of 5 clearly AI-generated texts must be at least 0.25 higher than the average combined score of 5 clearly human-written texts, where both sets are listed under criterion 2 in `scenarios.py`.
 
 **Why this target:** The two signals are useful only if they produce meaningful separation. A 0.25 gap gives the thresholds room to distinguish confident cases while leaving an unsure band for disagreement and borderline writing.
 
@@ -84,7 +84,7 @@ For 5 out of 5 valid appeals, `POST /appeal` must return a success response, pre
 
 ## 5.
 
-For 10 checks—five requests with missing or empty `text` and five requests whose text exceeds the service's documented maximum—the service must return a client-error response (`4xx`), must not return a confidence label, and must not create a `decided` audit entry.
+For 10 checks—five requests with missing or empty `text` and five requests whose text exceeds the service's documented maximum of 10,000 characters (`config.MAX_TEXT_CHARS`)—the service must return a client-error response (`4xx`), must not return a confidence label, and must not create a `decided` audit entry.
 
 **Why this target:** Invalid input should fail clearly at the boundary rather than crash the detector or create a misleading decision. Rejecting oversized text also protects the local model from unnecessary work and keeps the service's resource limits observable.
 
