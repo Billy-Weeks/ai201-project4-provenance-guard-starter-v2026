@@ -130,9 +130,9 @@ That is the expensive failure: the writer is being accused even though the work 
 <!-- Write the rule in words, then give the numbers. What happens when the two
      signals disagree? -->
 
-**The rule:**
+**The rule:** I use a weighted average. Both signals point in the same direction, where a higher score means more likely AI. When the signals disagree, the combined score stays between them and moves toward the model signal because it reads meaning while the style signal only sees surface form.
 
-**The numbers:**
+**The numbers:** `combined_score = (0.60 * model_score) + (0.40 * style_score)`. The current provisional label thresholds remain `0.35` for high-confidence human and `0.65` for high-confidence AI; the label text and final reachability checks are Milestone 5 work.
 
 **Where it lives:** `scoring.py::combine_signals`
 
@@ -141,7 +141,33 @@ That is the expensive failure: the writer is being accused even though the work 
 
 **A case where my two signals split, and what my rule does with it:**
 
-This combining rule and its numbers will be selected and recorded before implementation in Milestone 4. A planned disagreement case is plain, formal human writing: the model may find its conventional wording predictable while the style signal may find its sentence and vocabulary patterns human-like. The final rule must document how that disagreement affects the combined score.
+For a disagreement case such as plain, formal human writing, the model may produce a relatively high AI-like score because the wording is predictable while the style signal may produce a lower score because sentence lengths and vocabulary vary. The weighted average reduces the model score's effect slightly when the style signal reads the surface form as human-like, while preserving the model as the more influential signal.
+
+### Milestone 4 calibration results
+
+The latest four calibration submissions were recorded in `logs/audit.jsonl`. The service returned both signal scores and the weighted combined score for each one.
+
+| Input | Model score | Style score | Combined score |
+|---|---:|---:|---:|
+| Clearly AI | 0.6037 | 0.5513 | 0.5827 |
+| Clearly human | 0.5195 | 0.6009 | 0.5521 |
+| Formal human | 0.2361 | 0.6715 | 0.4103 |
+| Lightly edited AI | 0.3493 | 0.4297 | 0.3815 |
+
+The clearly-AI and clearly-human samples were only `0.0306` apart in combined score, so they were not noticeably separated in this run. The model and style signals also disagreed on the formal-human sample: the model score was relatively human-like at `0.2361`, while the style score was more AI-like at `0.6715`. The weighted average produced `0.4103`, showing how the combining rule handles disagreement. This is a calibration finding to investigate, not a claim that the detector is accurate.
+
+### Matched-length follow-up
+
+The first calibration used short samples with different topics, lengths, and sentence structures. Because both signals are affected by wording and text shape, we ran a second set with four longer samples of roughly similar length, the same general topic, and comparable sentence counts. The purpose was to test whether the weak separation in the first run was partly caused by the sample construction rather than by the combining rule alone.
+
+| Input | Model score | Style score | Combined score |
+|---|---:|---:|---:|
+| Clearly AI | 0.7809 | 0.5704 | 0.6967 |
+| Clearly human | 0.2738 | 0.5919 | 0.4010 |
+| Formal human | 0.6691 | 0.6618 | 0.6662 |
+| Lightly edited AI | 0.6456 | 0.5918 | 0.6241 |
+
+The clearly-AI and clearly-human combined scores were `0.2957` apart in this follow-up, compared with only `0.0306` in the first run. That supports the conclusion that short, unmatched samples contributed to the original weak separation. The formal-human sample still scored AI-like, so matching length and topic did not remove every blind spot. These results are evidence about this calibration set, not proof of authorship detection accuracy.
 
 
 

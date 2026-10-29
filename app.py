@@ -31,6 +31,8 @@ from flask import Flask, jsonify, request
 import audit
 import config
 import detector
+import scoring
+import stylometry
 
 app = Flask(__name__)
 
@@ -215,18 +217,18 @@ def submit():
 
     content_id = str(uuid.uuid4())
     model_score = detector.model_signal(text)
+    style_score = stylometry.style_signal(text)
+    confidence = scoring.combine_signals(model_score, style_score)
 
-    # Milestone 3 uses the first signal only. The combined confidence and
-    # reader-facing label are completed in Milestones 4 and 5.
+    # Milestone 5 will replace these placeholders with the real label mapping.
     guess = "pending"
-    confidence = 0.5
     label = "Scoring will be added in a later milestone."
     audit.log_decision(
         content_id=content_id,
         creator_id=creator_id,
         guess=guess,
         model_score=model_score,
-        style_score=0.5,
+        style_score=style_score,
         combined_score=confidence,
         label=label,
         status="decided",
@@ -238,7 +240,7 @@ def submit():
         "confidence": confidence,
         "label": label,
         "model_score": model_score,
-        "style_score": 0.5,
+        "style_score": style_score,
     })
 
 @app.post("/appeal")

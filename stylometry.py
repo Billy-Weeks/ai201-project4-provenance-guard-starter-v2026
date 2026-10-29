@@ -32,6 +32,7 @@ anything together:
 
 import re
 import statistics
+import string
 
 
 def sentences(text: str) -> list[str]:
@@ -64,8 +65,15 @@ def sentence_length_spread(text: str) -> float:
     `stdev` raises on fewer than two values. Decide what that should return
     before the attack set decides for you.
     """
-    # TODO: replace this
-    return 0.0
+    lengths = [len(words(sentence)) for sentence in sentences(text)]
+    lengths = [length for length in lengths if length > 0]
+    if len(lengths) < 2:
+        return 0.0
+
+    mean_length = statistics.mean(lengths)
+    if mean_length == 0:
+        return 0.0
+    return statistics.stdev(lengths) / mean_length
 
 
 def type_token_ratio(text: str) -> float:
@@ -80,8 +88,10 @@ def type_token_ratio(text: str) -> float:
     directly comparable on it, and if your test inputs vary a lot in length,
     that alone can look like a signal.
     """
-    # TODO: replace this
-    return 0.0
+    tokens = words(text)
+    if not tokens:
+        return 0.0
+    return len(set(tokens)) / len(tokens)
 
 
 def punctuation_density(text: str) -> float:
@@ -94,8 +104,11 @@ def punctuation_density(text: str) -> float:
         more interesting than full stops, because they vary more between
         writers.
     """
-    # TODO: replace this
-    return 0.0
+    visible_characters = [character for character in text if not character.isspace()]
+    if not visible_characters:
+        return 0.0
+    punctuation_count = sum(character in string.punctuation for character in visible_characters)
+    return punctuation_count / len(visible_characters)
 
 
 # ── Combining them ───────────────────────────────────────────────────────────
@@ -122,8 +135,23 @@ def style_signal(text: str) -> float:
     you trust it. Plain and ordinary, not formal: formal prose reads as *human*
     to signal one, and it is plain writing that gets accused.
     """
-    # TODO: replace this
-    return 0.5
+    spread = sentence_length_spread(text)
+    vocabulary = type_token_ratio(text)
+    punctuation = punctuation_density(text)
+
+    # Lower spread, lower vocabulary variety, and lower punctuation density
+    # each contribute to an AI-like style score. The caps put all three
+    # components on a comparable 0-1 scale before weighting them.
+    spread_ai = 1.0 - min(spread, 1.0)
+    vocabulary_ai = 1.0 - vocabulary
+    punctuation_ai = 1.0 - min(punctuation / 0.20, 1.0)
+
+    score = (
+        0.45 * spread_ai
+        + 0.35 * vocabulary_ai
+        + 0.20 * punctuation_ai
+    )
+    return round(min(max(score, 0.0), 1.0), 4)
 
 
 if __name__ == "__main__":
@@ -139,4 +167,4 @@ if __name__ == "__main__":
     print(f"type_token_ratio         {type_token_ratio(text)}")
     print(f"punctuation_density      {punctuation_density(text)}")
     print(f"style_signal             {style_signal(text)}   (higher = more likely AI)")
-    print("\nAll zeros? These are stubs — Milestone 4 is where you build them.")
+    print("\nThe style signal is now implemented for Milestone 4 calibration.")

@@ -54,8 +54,12 @@ DETECTOR_MAX_TOKENS = 400
 # down BEFORE you code it, and to put the numbers in your README. Whatever you
 # decide, it goes here.
 
-WEIGHT_MODEL_SIGNAL = 0.5
-WEIGHT_STYLE_SIGNAL = 0.5
+# The model reads meaning and is the more direct signal, so it gets slightly
+# more weight. The style signal is useful as a second view but cannot see
+# meaning or authorship, so keeping it below half reduces false accusations
+# when the two signals disagree.
+WEIGHT_MODEL_SIGNAL = 0.6
+WEIGHT_STYLE_SIGNAL = 0.4
 
 
 # ─── Thresholds (Milestone 5) ────────────────────────────────────────────────
