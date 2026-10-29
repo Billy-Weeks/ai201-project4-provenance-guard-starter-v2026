@@ -317,6 +317,16 @@ $ curl "http://127.0.0.1:5000/log?limit=2"
 - *What came back:* Three gaps. No submission had reached the high-confidence human label. My "signals split" paragraph described the opposite of my own calibration data. Criterion 5 referred to a "documented maximum" text length that did not exist, and empty text was being scored instead of rejected.
 - *What I changed:* I had the AI fix all three, and I reviewed each edit before committing. A text submission reached the human label (`0.1341`) and was added under Label Variants. The disagreement paragraph was rewritten around the real formal-human numbers. `MAX_TEXT_CHARS = 10000` was added to `config.py`, along with a check in `app.py::submit` that returns `400` for empty or oversized text, and criterion 5 now names that limit.
 
+---
+
+## Stretch Feature
+
+**Declared (not yet built):** `GET /content/<id>`
+
+**What it will do:** `GET /content/<content_id>` will return one item's current status. It will read that content's entries from `logs/audit.jsonl` and return its `content_id`, `creator_id`, the original decision (`guess`, `confidence`, `label`), and its current `status`: `decided` after a submission, or `under_review` once an appeal has been recorded. An unknown `content_id` will return `404`. The route will only read the log; it will not change scoring, labels, or any existing route.
+
+**Planned evidence:** once it is built, this section will explain what changed and show a request and response as text, both before and after an appeal.
+
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 
 ---
