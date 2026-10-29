@@ -327,6 +327,65 @@ $ curl "http://127.0.0.1:5000/log?limit=2"
 
 **Planned evidence:** once it is built, this section will explain what changed and show a request and response as text, both before and after an appeal.
 
+### Built: what changed
+
+- `app.py::get_content` adds the `GET /content/<content_id>` route. It collects every log entry for that ID with `audit.entries_for`. It reports the original decision from the `decided` entry and the current `status` from the most recent entry, so an appeal shows up as `under_review` without the original decision being overwritten.
+- An unknown ID returns `404` with `{"error": "not_found"}`.
+- Nothing else changed. `/submit`, `/appeal`, scoring, and labels are untouched; the route only reads `logs/audit.jsonl`.
+
+### Request and response
+
+Submission (`creator_id` `stretch-writer`) returned `content_id` `0f21f800-28f9-46c3-b77a-633a12f1e494`, with a confidence of `0.4495` and the "unsure" label.
+
+Before the appeal:
+
+```bash
+$ curl http://127.0.0.1:5000/content/0f21f800-28f9-46c3-b77a-633a12f1e494
+```
+
+```json
+{
+  "confidence": 0.4495,
+  "content_id": "0f21f800-28f9-46c3-b77a-633a12f1e494",
+  "creator_id": "stretch-writer",
+  "guess": "unsure",
+  "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+  "status": "decided"
+}
+```
+
+After `POST /appeal` for that ID, which returned `"status": "under_review"`:
+
+```bash
+$ curl http://127.0.0.1:5000/content/0f21f800-28f9-46c3-b77a-633a12f1e494
+```
+
+```json
+{
+  "confidence": 0.4495,
+  "content_id": "0f21f800-28f9-46c3-b77a-633a12f1e494",
+  "creator_id": "stretch-writer",
+  "guess": "unsure",
+  "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+  "status": "under_review"
+}
+```
+
+Unknown ID:
+
+```bash
+$ curl http://127.0.0.1:5000/content/does-not-exist
+```
+
+```json
+{
+  "error": "not_found",
+  "message": "No submission exists for that content_id."
+}
+```
+
+That request returns HTTP status `404`.
+
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 
 ---

@@ -20,6 +20,7 @@ Routes:
     POST /ping        the worked example. Already works. Don't edit it
     POST /submit      ← YOU BUILD THIS (Milestone 3, 4, 5)
     POST /appeal      ← YOU BUILD THIS (Milestone 5)
+    GET  /content/<id>  one item's current status (stretch feature)
     GET  /log         the audit log. Already works
     GET  /health      is the service up, and is the model loaded
 """
@@ -280,6 +281,27 @@ def appeal():
         "content_id": content_id,
         "status": appeal_entry["status"],
         "message": "Appeal recorded for review.",
+    })
+
+
+@app.get("/content/<content_id>")
+def get_content(content_id):
+    """One item's original decision and its current status, read from the audit log."""
+    entries = audit.entries_for(content_id)
+    if not entries:
+        return jsonify({
+            "error": "not_found",
+            "message": "No submission exists for that content_id.",
+        }), 404
+
+    original = next((entry for entry in entries if entry.get("status") == "decided"), entries[0])
+    return jsonify({
+        "content_id": content_id,
+        "creator_id": original.get("creator_id"),
+        "guess": original.get("guess"),
+        "confidence": original.get("combined_score"),
+        "label": original.get("label"),
+        "status": entries[-1].get("status"),
     })
 
 
