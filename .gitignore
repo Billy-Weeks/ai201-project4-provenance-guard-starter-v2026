@@ -19,6 +19,7 @@ Thumbs.db
 
 # Local project instructions
 instructions.md
+instructions-2.md
 
 # NOTE: logs/ and results/ are deliberately NOT ignored. Your audit log and
 # your attack runs are evidence, and they're part of what gets graded.

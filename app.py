@@ -155,7 +155,7 @@ def health():
 # ── YOU BUILD THIS ────────────────────────────────────────────────────────────
 
 @app.post("/submit")
-# @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
+@limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
 def submit():
     """
     Take a piece of text, decide about it, log the decision, answer.
@@ -206,18 +206,38 @@ def submit():
     payload = request.get_json(silent=True) or {}
 
     if not isinstance(payload, dict):
+        audit.log_rejection(
+            creator_id="unknown",
+            reason="invalid_json",
+            message="Request body must be a JSON object.",
+        )
         return jsonify({"error": "invalid_json", "message": "Request body must be a JSON object."}), 400
 
     text = payload.get("text")
     creator_id = payload.get("creator_id")
     if not isinstance(text, str) or not isinstance(creator_id, str):
+        audit.log_rejection(
+            creator_id=creator_id if isinstance(creator_id, str) else "unknown",
+            reason="missing_fields",
+            message="POST /submit requires text and creator_id.",
+        )
         return jsonify({
             "error": "missing_fields",
             "message": "POST /submit requires text and creator_id.",
         }), 400
     if not text.strip():
+        audit.log_rejection(
+            creator_id=creator_id,
+            reason="empty_text",
+            message="text must not be empty.",
+        )
         return jsonify({"error": "empty_text", "message": "text must not be empty."}), 400
     if len(text) > config.MAX_TEXT_CHARS:
+        audit.log_rejection(
+            creator_id=creator_id,
+            reason="text_too_long",
+            message=f"text must be at most {config.MAX_TEXT_CHARS} characters.",
+        )
         return jsonify({
             "error": "text_too_long",
             "message": f"text must be at most {config.MAX_TEXT_CHARS} characters.",

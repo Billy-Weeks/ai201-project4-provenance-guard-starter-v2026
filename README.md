@@ -392,13 +392,15 @@ That request returns HTTP status `404`.
 
 ## Rate Limiting
 
-**My limits:** ___ per minute, ___ per day
+**My limits:** 10 per minute, 200 per day
 
 **Why those numbers and not others:**
-<!-- Think about two people: a real writer submitting their own work a few
-     times an hour, and a script sending a thousand variations to map your
-     thresholds. Your numbers have to be liveable for the first and hostile to
-     the second. -->
+I chose 10 submissions per minute because a real writer can submit several
+pieces or corrections in a short session, while a script probing thresholds
+with many variations will hit the limit quickly. I chose 200 per day because
+that leaves room for a writer's normal daily activity and retries without
+allowing a sustained high-volume mapping attack. The limits are keyed to a
+valid `creator_id`; requests without one fall back to the caller's address.
 
 **What a caller counts as:** <!-- per address, or per creator_id? They fail
 differently — one script can look like a thousand callers, and one household
