@@ -411,7 +411,7 @@ can look like one. -->
 <!-- python run_attacks.py --flood 15 -->
 
 ```
-
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ```
 
 ---
@@ -428,7 +428,101 @@ can look like one. -->
 <!-- Choose entries that show the interesting failures, not the ten easiest. -->
 
 ```json
-
+{
+  "combined_score": 0.2795,
+  "content_id": "ef5dcabb-b021-49ab-9428-954d3ed9fac6",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:38+00:00"
+}
+{
+  "combined_score": 0.2795,
+  "content_id": "d0b1bffe-9516-4538-8359-acccfa451d36",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:38+00:00"
+}
+{
+  "combined_score": 0.2795,
+  "content_id": "73d748f8-99b4-49e0-b6bc-897f3ef01527",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:38+00:00"
+}
+{
+  "combined_score": 0.2795,
+  "content_id": "ad17ea5a-2aec-40fa-8b69-bc56828ca3df",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:38+00:00"
+}
+{
+  "combined_score": 0.2795,
+  "content_id": "bba829d7-fcd5-412f-bd51-dee699ea10b8",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
 ```
 
 **The single worst outcome** — the one I'd least want to explain to a writer
