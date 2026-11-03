@@ -414,6 +414,12 @@ can look like one. -->
 200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ```
 
+`GET /health` reported `rate_limiting: true`. The first flood attempt included
+one `ReadTimeout` while the detector model loaded, so I waited for the service
+to warm up and repeated the test. This clean run produced 10 accepted requests
+followed by 5 rate-limited requests, matching the 10-per-minute limit. The
+five `429` responses were also recorded as rejected events in the audit log.
+
 ---
 
 ## Attack Run — Before
