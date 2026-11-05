@@ -1,0 +1,2007 @@
+{
+  "count": 200,
+  "entries": [
+    {
+      "combined_score": 0.2795,
+      "content_id": "7d1b6cd7-717a-42ce-bca6-d0f252ea156c",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:37+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "335744a4-3d5d-4725-8e42-d7fef54cb8cc",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:37+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "c3423790-d85e-4b44-b4e5-1d4a15f38677",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:37+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "e8def7e3-35b4-4435-82c2-deaeb02cd1ec",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:38+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "ef5dcabb-b021-49ab-9428-954d3ed9fac6",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:38+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "d0b1bffe-9516-4538-8359-acccfa451d36",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:38+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "73d748f8-99b4-49e0-b6bc-897f3ef01527",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:38+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "ad17ea5a-2aec-40fa-8b69-bc56828ca3df",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:38+00:00"
+    },
+    {
+      "combined_score": 0.2795,
+      "content_id": "bba829d7-fcd5-412f-bd51-dee699ea10b8",
+      "creator_id": "flood_tester",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2587,
+      "status": "decided",
+      "style_score": 0.3107,
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "creator_id": "flood_tester",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-03T02:38:39+00:00"
+    },
+    {
+      "combined_score": 0.3252,
+      "content_id": "95f64917-2fbf-4ac5-b4cb-00ec5f087bad",
+      "creator_id": "wsl_warmup_2026_11_03",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.1317,
+      "status": "decided",
+      "style_score": 0.6155,
+      "timestamp": "2026-11-03T18:30:15+00:00"
+    },
+    {
+      "combined_score": 0.4155,
+      "content_id": "e35167f2-9302-418e-9e73-b09444adb688",
+      "creator_id": "warmup_2026_11_04",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.283,
+      "status": "decided",
+      "style_score": 0.6143,
+      "timestamp": "2026-11-04T21:04:22+00:00"
+    },
+    {
+      "combined_score": 0.4568,
+      "content_id": "4e6786c1-9593-4ceb-b56b-c658cc006cfc",
+      "creator_id": "eval_my own writi_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4808,
+      "status": "decided",
+      "style_score": 0.4207,
+      "timestamp": "2026-11-04T23:32:46+00:00"
+    },
+    {
+      "combined_score": 0.5857,
+      "content_id": "f017730a-7c44-4efe-91d7-cc26b5cc6a8c",
+      "creator_id": "eval_my own writi_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6102,
+      "status": "decided",
+      "style_score": 0.549,
+      "timestamp": "2026-11-04T23:32:47+00:00"
+    },
+    {
+      "combined_score": 0.5916,
+      "content_id": "47fef903-bb46-4c4a-8cc3-2d275be76381",
+      "creator_id": "eval_my own writi_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5576,
+      "status": "decided",
+      "style_score": 0.6426,
+      "timestamp": "2026-11-04T23:32:48+00:00"
+    },
+    {
+      "combined_score": 0.3594,
+      "content_id": "17f5e596-def8-4f23-962e-a53f5ff9189c",
+      "creator_id": "eval_my own writi_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2876,
+      "status": "decided",
+      "style_score": 0.4672,
+      "timestamp": "2026-11-04T23:32:48+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "d8693468-98da-4344-88a7-abf99a4ef141",
+      "creator_id": "eval_my own writi_5",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:32:48+00:00"
+    },
+    {
+      "combined_score": 0.5176,
+      "content_id": "316759c3-ed60-44d0-81d9-b171d77414a2",
+      "creator_id": "eval_my own writi_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6376,
+      "status": "decided",
+      "style_score": 0.3376,
+      "timestamp": "2026-11-04T23:32:48+00:00"
+    },
+    {
+      "combined_score": 0.5866,
+      "content_id": "d6ef38e9-88b9-48c7-90a6-d6de9de0d668",
+      "creator_id": "eval_my own writi_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.613,
+      "status": "decided",
+      "style_score": 0.5471,
+      "timestamp": "2026-11-04T23:32:49+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "a9ab3672-bf5e-45a0-b2a2-54ac0d0b221a",
+      "creator_id": "eval_my own writi_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:32:49+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "3207e2ca-1b61-4a52-8cb9-50a96a3b09da",
+      "creator_id": "eval_my own writi_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:32:49+00:00"
+    },
+    {
+      "combined_score": 0.5761,
+      "content_id": "e6aeca4a-99fc-48f1-b9cc-586f68844291",
+      "creator_id": "eval_my own writi_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5901,
+      "status": "decided",
+      "style_score": 0.5551,
+      "timestamp": "2026-11-04T23:32:50+00:00"
+    },
+    {
+      "combined_score": 0.4568,
+      "content_id": "f2f11bf0-6f8b-4e45-a8a2-b29187f3f029",
+      "creator_id": "eval_my own writi_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4808,
+      "status": "decided",
+      "style_score": 0.4207,
+      "timestamp": "2026-11-04T23:32:50+00:00"
+    },
+    {
+      "combined_score": 0.5857,
+      "content_id": "21c93eee-8733-4c37-909d-1a3ec4d52b95",
+      "creator_id": "eval_my own writi_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6102,
+      "status": "decided",
+      "style_score": 0.549,
+      "timestamp": "2026-11-04T23:32:51+00:00"
+    },
+    {
+      "combined_score": 0.5916,
+      "content_id": "ab9dd40e-67da-47a1-9baa-750eeeb5224e",
+      "creator_id": "eval_my own writi_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5576,
+      "status": "decided",
+      "style_score": 0.6426,
+      "timestamp": "2026-11-04T23:32:52+00:00"
+    },
+    {
+      "combined_score": 0.3594,
+      "content_id": "d5d2e2de-e4ba-4719-833f-07896a9cafd2",
+      "creator_id": "eval_my own writi_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2876,
+      "status": "decided",
+      "style_score": 0.4672,
+      "timestamp": "2026-11-04T23:32:52+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "a3c8a8ac-26f4-478d-916b-5ff182edbe49",
+      "creator_id": "eval_my own writi_5",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:32:53+00:00"
+    },
+    {
+      "combined_score": 0.5176,
+      "content_id": "49fec3f6-4cce-4406-bbd5-71b8cdb3b5d9",
+      "creator_id": "eval_my own writi_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6376,
+      "status": "decided",
+      "style_score": 0.3376,
+      "timestamp": "2026-11-04T23:32:53+00:00"
+    },
+    {
+      "combined_score": 0.5866,
+      "content_id": "0e37c626-49fe-4d7a-b9b4-03249b01ccac",
+      "creator_id": "eval_my own writi_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.613,
+      "status": "decided",
+      "style_score": 0.5471,
+      "timestamp": "2026-11-04T23:32:54+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "24932698-5176-44c0-9da9-ee7235d696b5",
+      "creator_id": "eval_my own writi_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:32:54+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "d5e086e4-37ee-4877-8383-dd04edd8f3b2",
+      "creator_id": "eval_my own writi_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:32:55+00:00"
+    },
+    {
+      "combined_score": 0.5761,
+      "content_id": "947f0c50-c22b-4e7c-8aa5-2859e4bd32df",
+      "creator_id": "eval_my own writi_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5901,
+      "status": "decided",
+      "style_score": 0.5551,
+      "timestamp": "2026-11-04T23:32:55+00:00"
+    },
+    {
+      "combined_score": 0.4568,
+      "content_id": "694dfca4-236a-4e9c-945e-642b0c7663d0",
+      "creator_id": "eval_my own writi_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4808,
+      "status": "decided",
+      "style_score": 0.4207,
+      "timestamp": "2026-11-04T23:32:56+00:00"
+    },
+    {
+      "combined_score": 0.5857,
+      "content_id": "95f6c1f4-b57e-47fc-9e43-b261576dbd41",
+      "creator_id": "eval_my own writi_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6102,
+      "status": "decided",
+      "style_score": 0.549,
+      "timestamp": "2026-11-04T23:32:57+00:00"
+    },
+    {
+      "combined_score": 0.5916,
+      "content_id": "98216a02-5f16-4ef2-b914-f48272e4871b",
+      "creator_id": "eval_my own writi_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5576,
+      "status": "decided",
+      "style_score": 0.6426,
+      "timestamp": "2026-11-04T23:32:58+00:00"
+    },
+    {
+      "combined_score": 0.3594,
+      "content_id": "feb06aaf-61ad-46fa-aa66-f19983655f43",
+      "creator_id": "eval_my own writi_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2876,
+      "status": "decided",
+      "style_score": 0.4672,
+      "timestamp": "2026-11-04T23:32:59+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "387b003b-2573-4772-9a1e-e9dde7d72b7c",
+      "creator_id": "eval_my own writi_5",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:32:59+00:00"
+    },
+    {
+      "combined_score": 0.5176,
+      "content_id": "02a5a341-b3e1-4292-81e0-97b4b9eb37df",
+      "creator_id": "eval_my own writi_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6376,
+      "status": "decided",
+      "style_score": 0.3376,
+      "timestamp": "2026-11-04T23:32:59+00:00"
+    },
+    {
+      "combined_score": 0.5866,
+      "content_id": "e45db8e3-9994-44ca-847b-ec37f8ab7ee1",
+      "creator_id": "eval_my own writi_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.613,
+      "status": "decided",
+      "style_score": 0.5471,
+      "timestamp": "2026-11-04T23:33:00+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "a6370e5c-051d-4773-8e05-1e556bda8ce5",
+      "creator_id": "eval_my own writi_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:33:00+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "df4a6de7-f922-484c-90a8-8a46876eab83",
+      "creator_id": "eval_my own writi_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:33:01+00:00"
+    },
+    {
+      "combined_score": 0.5761,
+      "content_id": "56ae3a93-2b13-4234-a2cc-5e2623db07b6",
+      "creator_id": "eval_my own writi_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5901,
+      "status": "decided",
+      "style_score": 0.5551,
+      "timestamp": "2026-11-04T23:33:01+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "46822968-6e43-4d13-a5fa-d35d95bec281",
+      "creator_id": "eval_score separa_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:02+00:00"
+    },
+    {
+      "combined_score": 0.5731,
+      "content_id": "a395f1e7-6a18-4d2d-8164-856f0f46af25",
+      "creator_id": "eval_score separa_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.656,
+      "status": "decided",
+      "style_score": 0.4487,
+      "timestamp": "2026-11-04T23:33:02+00:00"
+    },
+    {
+      "combined_score": 0.5073,
+      "content_id": "97a54f96-92c7-47ab-89f8-cd70dd2b0d7c",
+      "creator_id": "eval_score separa_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4938,
+      "status": "decided",
+      "style_score": 0.5275,
+      "timestamp": "2026-11-04T23:33:02+00:00"
+    },
+    {
+      "combined_score": 0.4484,
+      "content_id": "eb11ba7d-c368-489c-9860-8dbb05a55b0b",
+      "creator_id": "eval_score separa_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4621,
+      "status": "decided",
+      "style_score": 0.4279,
+      "timestamp": "2026-11-04T23:33:02+00:00"
+    },
+    {
+      "combined_score": 0.5239,
+      "content_id": "ea173a03-e979-45ef-933a-a3aff035bcc6",
+      "creator_id": "eval_score separa_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5279,
+      "status": "decided",
+      "style_score": 0.518,
+      "timestamp": "2026-11-04T23:33:03+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "73c2ed80-1aa6-4910-94c0-c82bd63262d1",
+      "creator_id": "eval_score separa_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:33:03+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "45977fde-73c2-4049-b459-8253d75a5e8f",
+      "creator_id": "eval_score separa_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:33:03+00:00"
+    },
+    {
+      "combined_score": 0.5003,
+      "content_id": "cd2021ec-d373-4d5c-a8e6-6f913d5e9762",
+      "creator_id": "eval_score separa_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4723,
+      "status": "decided",
+      "style_score": 0.5422,
+      "timestamp": "2026-11-04T23:33:03+00:00"
+    },
+    {
+      "combined_score": 0.3981,
+      "content_id": "fc2f98d8-93a7-438b-9ec1-3343e6691489",
+      "creator_id": "eval_score separa_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2194,
+      "status": "decided",
+      "style_score": 0.6661,
+      "timestamp": "2026-11-04T23:33:04+00:00"
+    },
+    {
+      "combined_score": 0.4808,
+      "content_id": "73e9a988-ddba-4994-98d8-b997534ee7a0",
+      "creator_id": "eval_score separa_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4629,
+      "status": "decided",
+      "style_score": 0.5077,
+      "timestamp": "2026-11-04T23:33:04+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "b9a6e6dc-a6d9-4f51-a3ca-ccbea664ef54",
+      "creator_id": "eval_score separa_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:04+00:00"
+    },
+    {
+      "combined_score": 0.5731,
+      "content_id": "298ee674-eedc-4bf5-9bec-e7e9439e87ab",
+      "creator_id": "eval_score separa_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.656,
+      "status": "decided",
+      "style_score": 0.4487,
+      "timestamp": "2026-11-04T23:33:04+00:00"
+    },
+    {
+      "combined_score": 0.5073,
+      "content_id": "de80083b-41cb-48ac-b53a-3c6e625acb15",
+      "creator_id": "eval_score separa_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4938,
+      "status": "decided",
+      "style_score": 0.5275,
+      "timestamp": "2026-11-04T23:33:04+00:00"
+    },
+    {
+      "combined_score": 0.4484,
+      "content_id": "b2d879bd-8bc6-4e42-a82d-9a079879a4d6",
+      "creator_id": "eval_score separa_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4621,
+      "status": "decided",
+      "style_score": 0.4279,
+      "timestamp": "2026-11-04T23:33:05+00:00"
+    },
+    {
+      "combined_score": 0.5239,
+      "content_id": "3cc2e728-df4c-4b2d-8182-97db050d9350",
+      "creator_id": "eval_score separa_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5279,
+      "status": "decided",
+      "style_score": 0.518,
+      "timestamp": "2026-11-04T23:33:05+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "fb846de6-e8d3-4136-8e52-ccf39a3495b9",
+      "creator_id": "eval_score separa_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:33:05+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "2c202ede-8dd6-4755-b6dc-d2c40e8b80c2",
+      "creator_id": "eval_score separa_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:33:05+00:00"
+    },
+    {
+      "combined_score": 0.5003,
+      "content_id": "fff6d8f7-8bc4-43af-9ecd-20beefad9032",
+      "creator_id": "eval_score separa_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4723,
+      "status": "decided",
+      "style_score": 0.5422,
+      "timestamp": "2026-11-04T23:33:06+00:00"
+    },
+    {
+      "combined_score": 0.3981,
+      "content_id": "922eeeb7-eead-413c-a2b2-ad31f18d7511",
+      "creator_id": "eval_score separa_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2194,
+      "status": "decided",
+      "style_score": 0.6661,
+      "timestamp": "2026-11-04T23:33:06+00:00"
+    },
+    {
+      "combined_score": 0.4808,
+      "content_id": "1d903810-e4ab-46b3-9a31-d469d220edb0",
+      "creator_id": "eval_score separa_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4629,
+      "status": "decided",
+      "style_score": 0.5077,
+      "timestamp": "2026-11-04T23:33:06+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "0cbe371f-5b3d-4a92-bc36-c1743fc7bbbd",
+      "creator_id": "eval_score separa_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:06+00:00"
+    },
+    {
+      "combined_score": 0.5731,
+      "content_id": "08210f42-726a-4a9a-b92e-d01f91a19081",
+      "creator_id": "eval_score separa_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.656,
+      "status": "decided",
+      "style_score": 0.4487,
+      "timestamp": "2026-11-04T23:33:07+00:00"
+    },
+    {
+      "combined_score": 0.5073,
+      "content_id": "c5c02795-3e2a-48ea-99cb-4683121adb17",
+      "creator_id": "eval_score separa_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4938,
+      "status": "decided",
+      "style_score": 0.5275,
+      "timestamp": "2026-11-04T23:33:07+00:00"
+    },
+    {
+      "combined_score": 0.4484,
+      "content_id": "20c36426-3dfb-43fd-965a-9cf7d43cda96",
+      "creator_id": "eval_score separa_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4621,
+      "status": "decided",
+      "style_score": 0.4279,
+      "timestamp": "2026-11-04T23:33:07+00:00"
+    },
+    {
+      "combined_score": 0.5239,
+      "content_id": "6d13ab07-a0ba-4794-af9d-5aefde6878ca",
+      "creator_id": "eval_score separa_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5279,
+      "status": "decided",
+      "style_score": 0.518,
+      "timestamp": "2026-11-04T23:33:07+00:00"
+    },
+    {
+      "combined_score": 0.4169,
+      "content_id": "a4491bd0-b0ae-43f9-be55-be83e2c84ad0",
+      "creator_id": "eval_score separa_6",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3437,
+      "status": "decided",
+      "style_score": 0.5266,
+      "timestamp": "2026-11-04T23:33:07+00:00"
+    },
+    {
+      "combined_score": 0.5281,
+      "content_id": "32eac1e0-2100-4118-9ee2-c92ecbec9ef9",
+      "creator_id": "eval_score separa_7",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4343,
+      "status": "decided",
+      "style_score": 0.6687,
+      "timestamp": "2026-11-04T23:33:08+00:00"
+    },
+    {
+      "combined_score": 0.5003,
+      "content_id": "2875972c-d08c-4540-a6cc-4a3eede129c5",
+      "creator_id": "eval_score separa_8",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4723,
+      "status": "decided",
+      "style_score": 0.5422,
+      "timestamp": "2026-11-04T23:33:08+00:00"
+    },
+    {
+      "combined_score": 0.3981,
+      "content_id": "1c650b67-1130-4829-9554-8dff1b5fdf6a",
+      "creator_id": "eval_score separa_9",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2194,
+      "status": "decided",
+      "style_score": 0.6661,
+      "timestamp": "2026-11-04T23:33:08+00:00"
+    },
+    {
+      "combined_score": 0.4808,
+      "content_id": "5e04a9d1-4172-41f0-8d6b-9cff60f36e3c",
+      "creator_id": "eval_score separa_10",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4629,
+      "status": "decided",
+      "style_score": 0.5077,
+      "timestamp": "2026-11-04T23:33:08+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "845b5c0b-85b3-4bc2-9cde-dd5463c90c2c",
+      "creator_id": "eval_label covera_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:09+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "fd4959f1-58b1-4059-92df-ef8836d78d7e",
+      "creator_id": "eval_label covera_2",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:33:09+00:00"
+    },
+    {
+      "combined_score": 0.4769,
+      "content_id": "f2fe5468-3430-4514-9933-91bc0e02e7cc",
+      "creator_id": "eval_label covera_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4665,
+      "status": "decided",
+      "style_score": 0.4925,
+      "timestamp": "2026-11-04T23:33:09+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "21030aa1-eb79-4c9f-8825-042815c3c143",
+      "creator_id": "eval_label covera_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:09+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "ab62817b-7b51-45f7-8c4d-d9602f4232ed",
+      "creator_id": "eval_label covera_2",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:33:09+00:00"
+    },
+    {
+      "combined_score": 0.4769,
+      "content_id": "37f4476c-8096-469f-ad06-1a890dc85a77",
+      "creator_id": "eval_label covera_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4665,
+      "status": "decided",
+      "style_score": 0.4925,
+      "timestamp": "2026-11-04T23:33:10+00:00"
+    },
+    {
+      "combined_score": 0.5016,
+      "content_id": "598f29a5-5e24-4f21-be12-b9c3da8a208c",
+      "creator_id": "eval_label covera_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4582,
+      "status": "decided",
+      "style_score": 0.5667,
+      "timestamp": "2026-11-04T23:33:10+00:00"
+    },
+    {
+      "combined_score": 0.6614,
+      "content_id": "3dfd83e6-810d-426d-b2bc-fd1c8a764e56",
+      "creator_id": "eval_label covera_2",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.6389,
+      "status": "decided",
+      "style_score": 0.6952,
+      "timestamp": "2026-11-04T23:33:10+00:00"
+    },
+    {
+      "combined_score": 0.4769,
+      "content_id": "dbac0a70-7f4e-424e-b313-80ba348d8e33",
+      "creator_id": "eval_label covera_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4665,
+      "status": "decided",
+      "style_score": 0.4925,
+      "timestamp": "2026-11-04T23:33:10+00:00"
+    },
+    {
+      "combined_score": 0.5275,
+      "content_id": "a37d19fb-f8cc-4335-9274-37ab69c6a5be",
+      "creator_id": "eval_appeal_1_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4403,
+      "status": "decided",
+      "style_score": 0.6582,
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "content_id": "a37d19fb-f8cc-4335-9274-37ab69c6a5be",
+      "creator_id": "eval_appeal_1_1",
+      "event": "appeal",
+      "reasoning": "I wrote this submission myself and want the decision reviewed.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "combined_score": 0.4045,
+      "content_id": "bd6178e7-743c-4d75-b455-89a86bb0c746",
+      "creator_id": "eval_appeal_1_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2428,
+      "status": "decided",
+      "style_score": 0.6471,
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "content_id": "bd6178e7-743c-4d75-b455-89a86bb0c746",
+      "creator_id": "eval_appeal_1_2",
+      "event": "appeal",
+      "reasoning": "Please review the decision and the evidence recorded for this content.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "combined_score": 0.6007,
+      "content_id": "550324e8-e358-4449-bf2f-a61b7d6b6b6e",
+      "creator_id": "eval_appeal_1_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5741,
+      "status": "decided",
+      "style_score": 0.6405,
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "content_id": "550324e8-e358-4449-bf2f-a61b7d6b6b6e",
+      "creator_id": "eval_appeal_1_3",
+      "event": "appeal",
+      "reasoning": "I am appealing because the automated result may be mistaken.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "combined_score": 0.4939,
+      "content_id": "bd99cc5b-a17d-474c-94ce-4cd79c4968f5",
+      "creator_id": "eval_appeal_1_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3994,
+      "status": "decided",
+      "style_score": 0.6357,
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "content_id": "bd99cc5b-a17d-474c-94ce-4cd79c4968f5",
+      "creator_id": "eval_appeal_1_4",
+      "event": "appeal",
+      "reasoning": "Please place this item under review and preserve my explanation.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:11+00:00"
+    },
+    {
+      "combined_score": 0.3869,
+      "content_id": "c0f8359d-894f-436a-9390-09912071688a",
+      "creator_id": "eval_appeal_1_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2207,
+      "status": "decided",
+      "style_score": 0.6361,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "c0f8359d-894f-436a-9390-09912071688a",
+      "creator_id": "eval_appeal_1_5",
+      "event": "appeal",
+      "reasoning": "I am requesting an appeal and a recorded review of this decision.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "combined_score": 0.5275,
+      "content_id": "42c5211f-cfe6-460a-a1a4-a34fde66ac94",
+      "creator_id": "eval_appeal_2_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4403,
+      "status": "decided",
+      "style_score": 0.6582,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "42c5211f-cfe6-460a-a1a4-a34fde66ac94",
+      "creator_id": "eval_appeal_2_1",
+      "event": "appeal",
+      "reasoning": "I wrote this submission myself and want the decision reviewed.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "combined_score": 0.4045,
+      "content_id": "0e7e36cc-5808-4d97-bcf2-0a37a43a7ef9",
+      "creator_id": "eval_appeal_2_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2428,
+      "status": "decided",
+      "style_score": 0.6471,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "0e7e36cc-5808-4d97-bcf2-0a37a43a7ef9",
+      "creator_id": "eval_appeal_2_2",
+      "event": "appeal",
+      "reasoning": "Please review the decision and the evidence recorded for this content.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "combined_score": 0.6007,
+      "content_id": "2a121480-c89b-417b-b789-2274904751dc",
+      "creator_id": "eval_appeal_2_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5741,
+      "status": "decided",
+      "style_score": 0.6405,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "2a121480-c89b-417b-b789-2274904751dc",
+      "creator_id": "eval_appeal_2_3",
+      "event": "appeal",
+      "reasoning": "I am appealing because the automated result may be mistaken.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "combined_score": 0.4939,
+      "content_id": "c775b7e5-6c01-45d2-9839-2d36400ade24",
+      "creator_id": "eval_appeal_2_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3994,
+      "status": "decided",
+      "style_score": 0.6357,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "c775b7e5-6c01-45d2-9839-2d36400ade24",
+      "creator_id": "eval_appeal_2_4",
+      "event": "appeal",
+      "reasoning": "Please place this item under review and preserve my explanation.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "combined_score": 0.3869,
+      "content_id": "3eb2ee1e-beed-45d0-a451-424cf799ee83",
+      "creator_id": "eval_appeal_2_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2207,
+      "status": "decided",
+      "style_score": 0.6361,
+      "timestamp": "2026-11-04T23:33:12+00:00"
+    },
+    {
+      "content_id": "3eb2ee1e-beed-45d0-a451-424cf799ee83",
+      "creator_id": "eval_appeal_2_5",
+      "event": "appeal",
+      "reasoning": "I am requesting an appeal and a recorded review of this decision.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "combined_score": 0.5275,
+      "content_id": "39166c4d-c53e-4924-a066-5ad839cb20d3",
+      "creator_id": "eval_appeal_3_1",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4403,
+      "status": "decided",
+      "style_score": 0.6582,
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "content_id": "39166c4d-c53e-4924-a066-5ad839cb20d3",
+      "creator_id": "eval_appeal_3_1",
+      "event": "appeal",
+      "reasoning": "I wrote this submission myself and want the decision reviewed.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "combined_score": 0.4045,
+      "content_id": "08b584d7-3917-4f93-8ec4-7e3aa8acb805",
+      "creator_id": "eval_appeal_3_2",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2428,
+      "status": "decided",
+      "style_score": 0.6471,
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "content_id": "08b584d7-3917-4f93-8ec4-7e3aa8acb805",
+      "creator_id": "eval_appeal_3_2",
+      "event": "appeal",
+      "reasoning": "Please review the decision and the evidence recorded for this content.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "combined_score": 0.6007,
+      "content_id": "34e95519-f591-45f7-b171-a669322e9ccb",
+      "creator_id": "eval_appeal_3_3",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5741,
+      "status": "decided",
+      "style_score": 0.6405,
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "content_id": "34e95519-f591-45f7-b171-a669322e9ccb",
+      "creator_id": "eval_appeal_3_3",
+      "event": "appeal",
+      "reasoning": "I am appealing because the automated result may be mistaken.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "combined_score": 0.4939,
+      "content_id": "21b93f9a-d0bf-45c5-8559-73b559c5e854",
+      "creator_id": "eval_appeal_3_4",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.3994,
+      "status": "decided",
+      "style_score": 0.6357,
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "content_id": "21b93f9a-d0bf-45c5-8559-73b559c5e854",
+      "creator_id": "eval_appeal_3_4",
+      "event": "appeal",
+      "reasoning": "Please place this item under review and preserve my explanation.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "combined_score": 0.3869,
+      "content_id": "30fb8862-fa8f-4cc5-a0cf-7abdd637ffd5",
+      "creator_id": "eval_appeal_3_5",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.2207,
+      "status": "decided",
+      "style_score": 0.6361,
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "content_id": "30fb8862-fa8f-4cc5-a0cf-7abdd637ffd5",
+      "creator_id": "eval_appeal_3_5",
+      "event": "appeal",
+      "reasoning": "I am requesting an appeal and a recorded review of this decision.",
+      "status": "under_review",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_1",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_2",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_1",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_2",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_null",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_1",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_2",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_3",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_4",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_5",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_1",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_2",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_1",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:13+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_2",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_null",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_1",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_2",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_3",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_4",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_5",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_1",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_empty_2",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_1",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_missing_2",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_null",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_1",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_2",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_3",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_4",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "creator_id": "eval_bad_huge_5",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-04T23:33:14+00:00"
+    },
+    {
+      "combined_score": 0.3396,
+      "content_id": "a2f9254d-7d42-42a9-9369-c5d6111828df",
+      "creator_id": "attacker_EV01",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.1635,
+      "status": "decided",
+      "style_score": 0.6038,
+      "timestamp": "2026-11-05T01:19:22+00:00"
+    },
+    {
+      "combined_score": 0.4793,
+      "content_id": "f8e361a1-cc02-4c9c-9a88-5d4c764e9970",
+      "creator_id": "attacker_EV02",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5943,
+      "status": "decided",
+      "style_score": 0.3067,
+      "timestamp": "2026-11-05T01:19:22+00:00"
+    },
+    {
+      "combined_score": 0.5904,
+      "content_id": "10b7c63e-c693-4ea2-a216-2d48220d02d5",
+      "creator_id": "attacker_EV03",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6662,
+      "status": "decided",
+      "style_score": 0.4768,
+      "timestamp": "2026-11-05T01:19:23+00:00"
+    },
+    {
+      "combined_score": 0.6051,
+      "content_id": "d0d99dc3-f111-4898-9a9e-66ca1c9d9adc",
+      "creator_id": "attacker_EV04",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6114,
+      "status": "decided",
+      "style_score": 0.5956,
+      "timestamp": "2026-11-05T01:19:24+00:00"
+    },
+    {
+      "combined_score": 0.3499,
+      "content_id": "79aee5a5-2d06-4d3e-bb36-e5d841b8c31a",
+      "creator_id": "attacker_EV05",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.3212,
+      "status": "decided",
+      "style_score": 0.393,
+      "timestamp": "2026-11-05T01:19:24+00:00"
+    },
+    {
+      "combined_score": 0.4528,
+      "content_id": "2aa75669-9ac7-48d2-861d-b978d287ef62",
+      "creator_id": "attacker_EV06",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5727,
+      "status": "decided",
+      "style_score": 0.2729,
+      "timestamp": "2026-11-05T01:19:25+00:00"
+    },
+    {
+      "combined_score": 0.63,
+      "content_id": "cef76e49-eb8e-4b45-9ed3-102ae883233e",
+      "creator_id": "attacker_EV07",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5862,
+      "status": "decided",
+      "style_score": 0.6956,
+      "timestamp": "2026-11-05T01:19:25+00:00"
+    },
+    {
+      "combined_score": 0.3419,
+      "content_id": "d47cb1ce-cd8f-401e-8abe-091ec79dcadc",
+      "creator_id": "attacker_EV08",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2452,
+      "status": "decided",
+      "style_score": 0.487,
+      "timestamp": "2026-11-05T01:19:26+00:00"
+    },
+    {
+      "combined_score": 0.6089,
+      "content_id": "7d667f76-b8ea-45b7-8cef-ea74b539bd03",
+      "creator_id": "attacker_EV09",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.7042,
+      "status": "decided",
+      "style_score": 0.4659,
+      "timestamp": "2026-11-05T01:19:26+00:00"
+    },
+    {
+      "combined_score": 0.8692,
+      "content_id": "d9d8858e-6bd8-4877-8ff7-3921cf0e05b2",
+      "creator_id": "attacker_EV10",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.9792,
+      "status": "decided",
+      "style_score": 0.7041,
+      "timestamp": "2026-11-05T01:19:27+00:00"
+    },
+    {
+      "combined_score": 0.5794,
+      "content_id": "ccb315ff-ac35-47a1-bf7a-e5a62652458e",
+      "creator_id": "attacker_FP01",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6175,
+      "status": "decided",
+      "style_score": 0.5223,
+      "timestamp": "2026-11-05T01:19:27+00:00"
+    },
+    {
+      "combined_score": 0.6925,
+      "content_id": "f4773225-c96d-4835-a08d-3b50a6f4bb49",
+      "creator_id": "attacker_FP02",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.7387,
+      "status": "decided",
+      "style_score": 0.6233,
+      "timestamp": "2026-11-05T01:19:27+00:00"
+    },
+    {
+      "combined_score": 0.7145,
+      "content_id": "8b5cca78-58ea-4236-bdcc-0786307877d4",
+      "creator_id": "attacker_FP03",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.8051,
+      "status": "decided",
+      "style_score": 0.5785,
+      "timestamp": "2026-11-05T01:19:28+00:00"
+    },
+    {
+      "combined_score": 0.7109,
+      "content_id": "65447106-f54a-4e52-b1ea-ac41e4b5ae2c",
+      "creator_id": "attacker_FP04",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.8329,
+      "status": "decided",
+      "style_score": 0.528,
+      "timestamp": "2026-11-05T01:19:28+00:00"
+    },
+    {
+      "combined_score": 0.7373,
+      "content_id": "f85d6f95-40bd-4775-b9aa-e721ebc44170",
+      "creator_id": "attacker_FP05",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.8005,
+      "status": "decided",
+      "style_score": 0.6426,
+      "timestamp": "2026-11-05T01:19:28+00:00"
+    },
+    {
+      "combined_score": 0.7229,
+      "content_id": "a9927bb9-c647-4a7f-aa75-587725010c81",
+      "creator_id": "attacker_FP06",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.8814,
+      "status": "decided",
+      "style_score": 0.4852,
+      "timestamp": "2026-11-05T01:19:29+00:00"
+    },
+    {
+      "combined_score": 0.7203,
+      "content_id": "ae520659-b11a-43c4-8f58-d713237c3559",
+      "creator_id": "attacker_FP07",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.8816,
+      "status": "decided",
+      "style_score": 0.4784,
+      "timestamp": "2026-11-05T01:19:29+00:00"
+    },
+    {
+      "combined_score": 0.3341,
+      "content_id": "795b91e0-ccd2-4b50-b8e6-504308c4993c",
+      "creator_id": "attacker_FP08",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.3223,
+      "status": "decided",
+      "style_score": 0.3517,
+      "timestamp": "2026-11-05T01:19:29+00:00"
+    },
+    {
+      "combined_score": 0.4203,
+      "content_id": "dd3dcf9e-05e7-4eb4-8c0f-2ea4d3779fec",
+      "creator_id": "attacker_PI01",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4625,
+      "status": "decided",
+      "style_score": 0.357,
+      "timestamp": "2026-11-05T01:19:29+00:00"
+    },
+    {
+      "combined_score": 0.2572,
+      "content_id": "7d37397f-cd47-4712-8bff-7dd97d014992",
+      "creator_id": "attacker_PI02",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.2044,
+      "status": "decided",
+      "style_score": 0.3365,
+      "timestamp": "2026-11-05T01:19:30+00:00"
+    },
+    {
+      "combined_score": 0.5589,
+      "content_id": "1fcfbe2f-d6c4-4df4-b5b2-3fbceb0ceb48",
+      "creator_id": "attacker_PI03",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5943,
+      "status": "decided",
+      "style_score": 0.5057,
+      "timestamp": "2026-11-05T01:19:30+00:00"
+    },
+    {
+      "combined_score": 0.478,
+      "content_id": "db51a322-e26f-4ba3-951c-ffe3fc633862",
+      "creator_id": "attacker_PI04",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.4998,
+      "status": "decided",
+      "style_score": 0.4453,
+      "timestamp": "2026-11-05T01:19:30+00:00"
+    },
+    {
+      "combined_score": 0.5209,
+      "content_id": "56396853-5f1d-4041-94f0-bd9af2264dec",
+      "creator_id": "attacker_PI05",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.6401,
+      "status": "decided",
+      "style_score": 0.342,
+      "timestamp": "2026-11-05T01:19:31+00:00"
+    },
+    {
+      "combined_score": 0.5465,
+      "content_id": "e6cd9fd9-bd0c-4a05-9970-f7b79e2fa907",
+      "creator_id": "attacker_PI06",
+      "guess": "unsure",
+      "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+      "model_score": 0.5583,
+      "status": "decided",
+      "style_score": 0.5289,
+      "timestamp": "2026-11-05T01:19:31+00:00"
+    },
+    {
+      "creator_id": "attacker_MF01",
+      "event": "rejected",
+      "message": "text must not be empty.",
+      "reason": "empty_text",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:31+00:00"
+    },
+    {
+      "combined_score": 0.2179,
+      "content_id": "8ebcde77-9aff-45bc-b596-a9440c317f9e",
+      "creator_id": "attacker_MF03",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0,
+      "status": "decided",
+      "style_score": 0.5447,
+      "timestamp": "2026-11-05T01:19:32+00:00"
+    },
+    {
+      "combined_score": 0.3267,
+      "content_id": "994bc772-70e7-4590-879c-3e329d2c6890",
+      "creator_id": "attacker_MF04",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0112,
+      "status": "decided",
+      "style_score": 0.8,
+      "timestamp": "2026-11-05T01:19:32+00:00"
+    },
+    {
+      "combined_score": 0.8586,
+      "content_id": "ad335006-8fad-4bf0-8051-1e4fb2444e20",
+      "creator_id": "attacker_MF05",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.9976,
+      "status": "decided",
+      "style_score": 0.65,
+      "timestamp": "2026-11-05T01:19:33+00:00"
+    },
+    {
+      "combined_score": 0.9981,
+      "content_id": "d896906e-bc7b-46c4-a93a-3d7ceb406ddc",
+      "creator_id": "attacker_MF06",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.9969,
+      "status": "decided",
+      "style_score": 1.0,
+      "timestamp": "2026-11-05T01:19:34+00:00"
+    },
+    {
+      "combined_score": 0.9394,
+      "content_id": "57c1761a-8218-4501-b3a1-ec7b5ca7d6f0",
+      "creator_id": "attacker_MF07",
+      "guess": "ai",
+      "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+      "model_score": 0.9064,
+      "status": "decided",
+      "style_score": 0.9888,
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_MF08",
+      "event": "rejected",
+      "message": "text must be at most 10000 characters.",
+      "reason": "text_too_long",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ01",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ03",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ04",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ05",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "Request body must be a JSON object.",
+      "reason": "invalid_json",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "unknown",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "creator_id": "attacker_RQ12",
+      "event": "rejected",
+      "message": "POST /submit requires text and creator_id.",
+      "reason": "missing_fields",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "25b39027-944f-4163-9abc-4136d67a6f55",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "9109ab16-cbad-4d74-b336-b2162b64ba10",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "d4910b37-418c-4243-a19f-88327444a410",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "dd607a04-cceb-4a71-b913-7a0bd47a756d",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:35+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "a3746852-447b-482f-b444-a62b6baf4ae1",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "ee34d113-8fb4-4bcc-92a6-4ee0a96a1767",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "65a1f758-daf1-4468-9fa1-8144031ab08d",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "3a2b5e8c-b79b-43f2-ade0-d3dbc2e098c3",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "8189e0e0-2b9c-4158-9b18-bad561272f89",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "combined_score": 0.2687,
+      "content_id": "09c43457-dc8f-4f4f-980f-b2695d24015f",
+      "creator_id": "attacker_flood",
+      "guess": "human",
+      "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+      "model_score": 0.0287,
+      "status": "decided",
+      "style_score": 0.6287,
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    },
+    {
+      "creator_id": "attacker_flood",
+      "event": "rejected",
+      "limit": "10 per 1 minute",
+      "reason": "rate_limited",
+      "status": "rejected",
+      "timestamp": "2026-11-05T01:19:36+00:00"
+    }
+  ]
+}
