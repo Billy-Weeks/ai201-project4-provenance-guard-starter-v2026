@@ -544,20 +544,77 @@ whose work got caught by it:
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1.  |  |  |  |  |  |
-| 2.  |  |  |  |  |  |
-| 3.  |  |  |  |  |  |
-| 4.  |  |  |  |  |  |
-| 5.  |  |  |  |  |  |
+| 1. My own writing flagged as AI | At most 1 of 10 in each trial | 1/10 | 1/10 | 1/10 | MET |
+| 2. Score separation | AI average at least 0.25 above human average | 0.0460 gap | 0.0460 gap | 0.0460 gap | MISSED |
+| 3. Label coverage | All three labels reachable in each run | 2/3 | 2/3 | 2/3 | MISSED |
+| 4. Appeal path | 5/5 valid appeals succeed and are recorded | 5/5 | 5/5 | 5/5 | MET |
+| 5. Bad input | 10/10 invalid requests return 4xx with no decision | 10/10 | 10/10 | 10/10 | MET |
 
 **Real output from one trial**, pasted as text, naming the file and function
-that produced it:
+that produced it. The complete three-trial report is
+`results/run_2026-11-04_1533_before.md`, produced by
+`run_eval.py::main`, calling `app.py::submit` and the appeal path.
 
 ```json
-
+{
+  "source": "results/run_2026-11-04_1533_before.md, Trial 1",
+  "produced_by": "run_eval.py::main",
+  "criteria": {
+    "1_my_own_writing": [
+      {"status": 200, "guess": "unsure", "confidence": 0.4568, "model_score": 0.4808, "style_score": 0.4207},
+      {"status": 200, "guess": "unsure", "confidence": 0.5857, "model_score": 0.6102, "style_score": 0.549},
+      {"status": 200, "guess": "unsure", "confidence": 0.5916, "model_score": 0.5576, "style_score": 0.6426},
+      {"status": 200, "guess": "unsure", "confidence": 0.3594, "model_score": 0.2876, "style_score": 0.4672},
+      {"status": 200, "guess": "ai", "confidence": 0.6614, "model_score": 0.6389, "style_score": 0.6952},
+      {"status": 200, "guess": "unsure", "confidence": 0.5176, "model_score": 0.6376, "style_score": 0.3376},
+      {"status": 200, "guess": "unsure", "confidence": 0.5866, "model_score": 0.613, "style_score": 0.5471},
+      {"status": 200, "guess": "unsure", "confidence": 0.4169, "model_score": 0.3437, "style_score": 0.5266},
+      {"status": 200, "guess": "unsure", "confidence": 0.5281, "model_score": 0.4343, "style_score": 0.6687},
+      {"status": 200, "guess": "unsure", "confidence": 0.5761, "model_score": 0.5901, "style_score": 0.5551}
+    ],
+    "2_score_separation": [0.5016, 0.5731, 0.5073, 0.4484, 0.5239, 0.4169, 0.5281, 0.5003, 0.3981, 0.4808],
+    "3_label_coverage": [
+      {"status": 200, "guess": "unsure", "confidence": 0.5016},
+      {"status": 200, "guess": "ai", "confidence": 0.6614},
+      {"status": 200, "guess": "unsure", "confidence": 0.4769}
+    ],
+    "4_appeal_path": [
+      {"submit_status": 200, "appeal_status": 200, "content_id_preserved": true, "reasoning_recorded": true, "under_review": true},
+      {"submit_status": 200, "appeal_status": 200, "content_id_preserved": true, "reasoning_recorded": true, "under_review": true},
+      {"submit_status": 200, "appeal_status": 200, "content_id_preserved": true, "reasoning_recorded": true, "under_review": true},
+      {"submit_status": 200, "appeal_status": 200, "content_id_preserved": true, "reasoning_recorded": true, "under_review": true},
+      {"submit_status": 200, "appeal_status": 200, "content_id_preserved": true, "reasoning_recorded": true, "under_review": true}
+    ],
+    "5_bad_input": [
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null},
+      {"status": 400, "guess": null, "confidence": null, "label": null}
+    ]
+  }
+}
 ```
 
 **Diagnoses**
+
+- **Criterion 2 missed — combining rule / both signals:** the five AI-style
+  inputs averaged `0.5109`, while the five human-written inputs averaged
+  `0.4648`, a gap of only `0.0460` instead of the target `0.25`. The model and
+  style signals assigned overlapping scores to the two groups, and the current
+  weighted combination (`0.6` model plus `0.4` style) preserved that overlap.
+- **Criterion 3 missed — label mapping:** the run reached `unsure` and `ai`,
+  but no input scored below the human threshold of `0.35`. The lowest observed
+  combined score was `0.3594`, so the label mapping had no input in its
+  high-confidence-human band.
+- Criteria 1, 4, and 5 met their targets in all three trials. Criterion 5's
+  invalid requests were stopped at the route boundary with 400 responses and
+  were not turned into `decided` entries.
 
 <!-- For each miss AND each broken attack: the stage and the mechanism.
 

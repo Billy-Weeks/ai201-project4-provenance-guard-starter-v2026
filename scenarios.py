@@ -43,36 +43,64 @@ SCENARIOS = [
         ],
     },
     {
-        "name": "label coverage",
+        "name": "score separation",
         "criterion": 2,
-        # Inputs spread across your score range, so you can check all three
-        # labels are actually reachable.
+        # The first five are clearly AI-generated comparison texts; the last
+        # five are human-written paragraphs reused from the submitted papers.
+        # run_eval.py preserves this order in every trial for the averages.
         "texts": [
-            "REPLACE ME with something you're confident is AI-generated.",
-            "REPLACE ME with something you're confident is human-written.",
-            "REPLACE ME with something genuinely borderline.",
+            "The implementation of a reliable measurement system requires careful calibration, systematic observation, and consistent documentation. By controlling the relevant variables and repeating the procedure, a researcher can distinguish random variation from a meaningful pattern in the results.",
+            "Digital tools have transformed the way people communicate, learn, and organize information. Although these tools improve efficiency, their benefits depend on responsible use, thoughtful evaluation, and an awareness of the limitations built into every system.",
+            "A sustainable solution should address both the immediate problem and the conditions that produced it. Short-term action may reduce visible symptoms, but long-term improvement requires examining the underlying causes and measuring whether the intervention produces durable results.",
+            "Effective collaboration depends on clear goals, defined responsibilities, and regular opportunities for feedback. When participants understand how their work contributes to a shared outcome, the group can identify problems earlier and make adjustments before small disagreements become major obstacles.",
+            "The relationship between technology and society is not one-directional. People design tools according to their needs and assumptions, while those tools influence later decisions, habits, and expectations. Understanding this relationship requires examining both technical performance and human consequences.",
+            "The 100 kΩ resistor resulted in a much closer to expected result, 49.31 Ω, normal margin of error, because it struck a balance between load sensitivity and meter resolution. It was small enough to create a distinct voltage drop that the DMM was able to accurately capture.",
+            "With a 50 Ω resistor, the expectation would be that an equal voltage divided, or seeing the voltage being halved when measured on the DMM. However, that was not the case and this was due to a high current draw as a result of the low resistance. This caused the function generator to drive harder to maintain the chosen output amplitude and keeping the function generator’s output voltage higher, resulting in an artificially lower resistance.",
+            "The biggest hurdle I ran into was making sense of the function generator’s internal resistance calculations. Initially, I didn’t understand why the 1 MΩ and 470 kΩ loads gave me 0 Ω and 33 Ω, or why the 50 Ω load calculated out to only 7.86 Ω instead of the 50 Ω listed on the datasheet. What finally clicked was realizing that the huge resistors barely caused any voltage drop, meaning the tiny change was either lost in the meter’s resolution or drastically magnified by the math.",
+            "When applying a -1 V DC offset, an inverse shift in the DC domain is produced while the AC domain remains unchanged.",
+            "When the trigger slope is changed to a Negative Slope on the oscilloscope, the waveform display shifts phase. Instead of the sine wave starting its trace upward from the zero-volt trigger level crossing on the left side of the screen, the waveform starts its trace downward from the exact same trigger point. The trigger crossing point dictates where the sweep begins rendering the signal.",
         ],
     },
-    # A bad-input criterion looks like this. Uncomment and adjust if that's one
-    # of your five — these are raw request bodies, sent exactly as written.
-    #
-    # {
-    #     "name": "bad input",
-    #     "criterion": 3,
-    #     "bodies": [
-    #         {"text": "", "creator_id": "eval_bad_empty"},
-    #         {"creator_id": "eval_bad_missing"},          # no text field at all
-    #         {"text": "word " * 50000, "creator_id": "eval_bad_huge"},
-    #         {"text": None, "creator_id": "eval_bad_null"},
-    #     ],
-    # },
-
-    # TODO: add what your remaining criteria need.
-    #
-    # A criterion about the appeal path can't be tested by sending text alone;
-    # it needs a submission first and then an appeal against the content_id
-    # that came back. You'll need to test that one by hand, or extend this file
-    # and run_eval.py to do it. Saying which you did is part of the write-up.
+    {
+        "name": "label coverage",
+        "criterion": 3,
+        # Inputs spread across the score range: AI-like, human-like, and
+        # borderline. The run determines whether all three labels are reachable.
+        "texts": [
+            "The implementation of a reliable measurement system requires careful calibration, systematic observation, and consistent documentation. By controlling the relevant variables and repeating the procedure, a researcher can distinguish random variation from a meaningful pattern in the results.",
+            "With the much large resistance values (1 MΩ, 470 kΩ, 100 kΩ) there was little to no current being pulled, resulting in almost no voltage drop. With a low resistance of only 50 Ω, there was a noticeable voltage drop measured, resulting in lower voltage being measured than what the calculations tell us to expect.",
+            "Sometimes a result looks convincing at first because the numbers seem to point in one direction. Looking more closely can reveal uncertainty, especially when the measurement is close to the instrument’s limits or when the explanation depends on assumptions that have not been tested.",
+        ],
+    },
+    {
+        "name": "appeal path",
+        "criterion": 4,
+        # Each trial submits five fresh items, appeals each returned content_id,
+        # and checks the appeal response plus the audit-log status.
+        "appeals": [
+            {"text": "I am asking for a review because this result does not match my experience writing this paragraph.", "reasoning": "I wrote this submission myself and want the decision reviewed."},
+            {"text": "The measurement may not capture the context behind this submission, so I am requesting a second look.", "reasoning": "Please review the decision and the evidence recorded for this content."},
+            {"text": "This result seems uncertain to me, and I would like a person to examine it.", "reasoning": "I am appealing because the automated result may be mistaken."},
+            {"text": "The wording reflects my own notes and should be reviewed before any action is taken.", "reasoning": "Please place this item under review and preserve my explanation."},
+            {"text": "I want to challenge this decision so that the original submission remains auditable.", "reasoning": "I am requesting an appeal and a recorded review of this decision."},
+        ],
+    },
+    {
+        "name": "bad input",
+        "criterion": 5,
+        "bodies": [
+            {"text": "", "creator_id": "eval_bad_empty_1"},
+            {"text": "   ", "creator_id": "eval_bad_empty_2"},
+            {"creator_id": "eval_bad_missing_1"},
+            {"creator_id": "eval_bad_missing_2"},
+            {"text": None, "creator_id": "eval_bad_null"},
+            {"text": "word " * 2001, "creator_id": "eval_bad_huge_1"},
+            {"text": "long " * 2001, "creator_id": "eval_bad_huge_2"},
+            {"text": "x" * 10001, "creator_id": "eval_bad_huge_3"},
+            {"text": "text " * 2500, "creator_id": "eval_bad_huge_4"},
+            {"text": "large " * 2000, "creator_id": "eval_bad_huge_5"},
+        ],
+    },
 ]
 
 
@@ -91,12 +119,24 @@ def validate() -> list[str]:
 
         texts = scenario.get("texts")
         bodies = scenario.get("bodies")
+        appeals = scenario.get("appeals")
 
-        if texts and bodies:
+        if sum(bool(value) for value in (texts, bodies, appeals)) > 1:
             problems.append(
-                f"scenario {i} ('{scenario.get('name')}') has both texts and "
-                f"bodies — pick one"
+                f"scenario {i} ('{scenario.get('name')}') has more than one "
+                f"scenario input type — pick one"
             )
+            continue
+
+        if appeals:
+            for j, appeal in enumerate(appeals, 1):
+                if not isinstance(appeal, dict):
+                    problems.append(f"scenario {i}, appeal {j} is not a dict")
+                    continue
+                if not isinstance(appeal.get("text"), str) or not appeal.get("text", "").strip():
+                    problems.append(f"scenario {i}, appeal {j} has no usable text")
+                if not isinstance(appeal.get("reasoning"), str) or not appeal.get("reasoning", "").strip():
+                    problems.append(f"scenario {i}, appeal {j} has no usable reasoning")
             continue
 
         if bodies:

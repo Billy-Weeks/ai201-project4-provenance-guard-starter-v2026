@@ -66,6 +66,59 @@ def describe(body):
     return json.dumps(body)[:120]
 
 
+def run_appeal_trial(args, scenario, trial_number, requests):
+    """Submit and appeal each case, then verify the append-only audit trail."""
+    results = []
+    for i, case in enumerate(scenario["appeals"], 1):
+        creator_id = f"eval_appeal_{trial_number}_{i}"
+        result = {
+            "sent": case["text"][:70],
+            "reasoning": case["reasoning"],
+        }
+        try:
+            submitted = requests.post(
+                f"{args.url}/submit",
+                json={"text": case["text"], "creator_id": creator_id},
+                timeout=args.timeout,
+            )
+            submit_payload = submitted.json() if submitted.content else {}
+            result["submit_status"] = submitted.status_code
+            content_id = submit_payload.get("content_id")
+            result["content_id"] = content_id
+            if submitted.status_code != 200 or not content_id:
+                result["appeal_status"] = None
+                result["error"] = "submission did not return a content_id"
+                results.append(result)
+                continue
+
+            appealed = requests.post(
+                f"{args.url}/appeal",
+                json={"content_id": content_id, "reasoning": case["reasoning"]},
+                timeout=args.timeout,
+            )
+            appeal_payload = appealed.json() if appealed.content else {}
+            result["appeal_status"] = appealed.status_code
+            result["content_id_preserved"] = appeal_payload.get("content_id") == content_id
+
+            logged = requests.get(f"{args.url}/log", timeout=args.timeout)
+            entries = logged.json().get("entries", []) if logged.content else []
+            matching = [entry for entry in entries if entry.get("content_id") == content_id]
+            result["reasoning_recorded"] = any(
+                entry.get("event") == "appeal"
+                and entry.get("reasoning") == case["reasoning"]
+                for entry in matching
+            )
+            result["under_review"] = any(
+                entry.get("event") == "appeal"
+                and entry.get("status") == "under_review"
+                for entry in matching
+            )
+        except Exception as exc:  # noqa: BLE001
+            result["error"] = f"{type(exc).__name__}: {exc}"
+        results.append(result)
+    return results
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -112,6 +165,19 @@ def main():
 
         trials = []
         for trial in range(1, args.trials + 1):
+            if scenario.get("appeals"):
+                results = run_appeal_trial(args, scenario, trial, requests)
+                trials.append(results)
+                successful = sum(
+                    result.get("appeal_status") == 200
+                    and result.get("content_id_preserved")
+                    and result.get("reasoning_recorded")
+                    and result.get("under_review")
+                    for result in results
+                )
+                print(f"  trial {trial}: {successful}/{len(results)} appeals verified")
+                continue
+
             results = []
             for i, body in enumerate(bodies_for(scenario), 1):
                 preview = describe(body)
