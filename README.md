@@ -335,6 +335,12 @@ $ curl "http://127.0.0.1:5000/log?limit=2"
 - *What came back:* The verdicts matched the raw run files. But three evasion diagnoses named the wrong signal: EV01's typos fooled signal one (model `0.1635`), not signal two. Held/broke counts were missing, and the after attack table was only a partial table in a different format. The flood rows were marked BROKE with a diagnosis saying they worked as intended. And MF06/MF07, emoji and right-to-left text labeled AI at `0.998` and `0.939`, were marked HELD only because they did not crash.
 - *What I changed:* I had the AI rewrite the diagnoses from the per-signal scores in the raw reports. This turned up the main finding of the unit: signal two scores my writing as *more* AI-like than the AI samples (−0.0845). I re-marked MF05–MF07 as BROKE under a stated rule, and added the counts and the full after table. I checked that only MF02, MF05 and MF06 differ between the two raw reports. Nothing was re-run; every number comes from the existing `results/` files and `logs/audit.jsonl`.
 
+**Moment 6 — The second improvement (stretch)**
+
+- *What I asked for:* A second improvement chosen from my own diagnosis, declared before it was built.
+- *What came back:* The AI proposed fixing the single-sentence rule in `style_signal`. Because GPT-2's scores were identical across trials, it computed the new style score for every attack and criterion input offline and wrote an exact prediction into the declaration.
+- *What I changed:* I committed the declaration first, then the one-function change, then ran both scripts myself. Every predicted number matched the measured one. I kept Criterion 3's verdict as MISSED under the original measurement method, even though the criterion's literal wording would now read as MET, because switching methods after seeing the result would not be an honest comparison.
+
 ---
 
 ## Stretch Feature
@@ -1110,7 +1116,8 @@ problems. They are ordered by harm, and each has what I would do next.
    would rather miss these than catch them by lowering the AI threshold.
 3. **Criterion 3, no human label.** Its main cause is the single-sentence rule
    in item 1, so it would be re-measured after that fix rather than handled
-   separately.
+   separately. *Done as the stretch below:* that fix produced the first human
+   label in my criteria runs, but Criterion 3 as measured is still 2/3.
 4. **Rate limit is per `creator_id`, and creator ids are free.** Stage: the
    route. Apart from the 12 FL01 flood rows, every staff attack used its own
    creator id, so none of the other 44 came near a limit. *Next:* add a
@@ -1214,6 +1221,186 @@ python run_eval.py --label after2
 I will report a third attack table and a third criteria table in the same
 format as the two above, compare them with the prediction, and state plainly
 whether the change helped and what it cost.
+
+### Built: what changed
+
+`stylometry.py::style_signal` now counts the sentences that contain words.
+With fewer than two, it scores `(0.35 × vocabulary_ai + 0.20 ×
+punctuation_ai) / 0.55` and leaves sentence spread out. With two or more, it
+uses the original three-feature formula unchanged. No other file changed. The
+declaration above was committed first (`7e573d9`), then the code (`7c1d187`),
+then these runs.
+
+### Attack Run — After 2
+
+Produced by `run_attacks.py::main`; the raw report is
+`results/attack_run_2026-11-04_2146_after2.md`. The same 56 attacks, in the
+same order, judged by the same rules as the two tables above. Compared with
+the first after run, 14 rows changed score, and they are exactly the 14
+inputs that are a single sentence: EV07, MF03, MF04, MF07 and FL01_01–10. No
+row changed status, guess or verdict.
+
+| ID | Family | Status | Guess | Score | Verdict |
+|---|---|---:|---|---:|---|
+| EV01 | evasion | 200 | human | 0.340 | BROKE |
+| EV02 | evasion | 200 | unsure | 0.479 | BROKE |
+| EV03 | evasion | 200 | unsure | 0.590 | BROKE |
+| EV04 | evasion | 200 | unsure | 0.605 | BROKE |
+| EV05 | evasion | 200 | human | 0.350 | BROKE |
+| EV06 | evasion | 200 | unsure | 0.453 | BROKE |
+| EV07 | evasion | 200 | unsure | 0.530 | BROKE |
+| EV08 | evasion | 200 | human | 0.342 | BROKE |
+| EV09 | evasion | 200 | unsure | 0.609 | BROKE |
+| EV10 | evasion | 200 | ai | 0.869 | HELD |
+| FP01 | false positive | 200 | unsure | 0.579 | HELD |
+| FP02 | false positive | 200 | ai | 0.693 | BROKE |
+| FP03 | false positive | 200 | ai | 0.715 | BROKE |
+| FP04 | false positive | 200 | ai | 0.711 | BROKE |
+| FP05 | false positive | 200 | ai | 0.737 | BROKE |
+| FP06 | false positive | 200 | ai | 0.723 | BROKE |
+| FP07 | false positive | 200 | ai | 0.720 | BROKE |
+| FP08 | false positive | 200 | human | 0.334 | HELD |
+| PI01 | prompt injection | 200 | unsure | 0.420 | HELD |
+| PI02 | prompt injection | 200 | human | 0.257 | HELD |
+| PI03 | prompt injection | 200 | unsure | 0.559 | HELD |
+| PI04 | prompt injection | 200 | unsure | 0.478 | HELD |
+| PI05 | prompt injection | 200 | unsure | 0.521 | HELD |
+| PI06 | prompt injection | 200 | unsure | 0.546 | HELD |
+| MF01 | malformed | 400 | — | — | HELD |
+| MF02 | malformed | 400 | — | — | HELD |
+| MF03 | malformed | 200 | human | 0.069 | HELD |
+| MF04 | malformed | 200 | human | 0.261 | HELD |
+| MF05 | malformed | 400 | — | — | HELD |
+| MF06 | malformed | 400 | — | — | HELD |
+| MF07 | malformed | 200 | ai | 0.936 | BROKE |
+| MF08 | malformed | 400 | — | — | HELD |
+| RQ01 | malformed | 400 | — | — | HELD |
+| RQ02 | malformed | 400 | — | — | HELD |
+| RQ03 | malformed | 400 | — | — | HELD |
+| RQ04 | malformed | 400 | — | — | HELD |
+| RQ05 | malformed | 400 | — | — | HELD |
+| RQ06 | malformed | 400 | — | — | HELD |
+| RQ07 | malformed | 400 | — | — | HELD |
+| RQ08 | malformed | 400 | — | — | HELD |
+| RQ09 | malformed | 400 | — | — | HELD |
+| RQ10 | malformed | 400 | — | — | HELD |
+| RQ11 | malformed | 400 | — | — | HELD |
+| RQ12 | malformed | 400 | — | — | HELD |
+| FL01_01 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_02 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_03 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_04 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_05 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_06 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_07 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_08 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_09 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_10 | flood_same_creator | 200 | human | 0.147 | HELD |
+| FL01_11 | flood_same_creator | 429 | — | — | HELD |
+| FL01_12 | flood_same_creator | 429 | — | — | HELD |
+
+**Count — before, after, after 2:**
+
+| Family | Attacks | Broke before | Broke after | Broke after 2 |
+|---|---:|---:|---:|---:|
+| evasion | 10 | 9 | 9 | 9 |
+| false positive | 8 | 6 | 6 | 6 |
+| prompt injection | 6 | 0 | 0 | 0 |
+| malformed (MF + RQ) | 20 | 4 | 1 | 1 |
+| flood_same_creator | 12 | 0 | 0 | 0 |
+| **Total** | **56** | **19** | **16** | **16** |
+
+### Criteria Run — After 2
+
+Produced by `run_eval.py::main`; the raw report is
+`results/run_2026-11-04_2150_after2.md`.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. My own writing flagged as AI | At most 1 of 10 in each trial | 1/10 | 1/10 | 1/10 | MET |
+| 2. Score separation | AI average at least 0.25 above human average | 0.0679 gap | 0.0679 gap | 0.0679 gap | MISSED |
+| 3. Label coverage | All three labels reachable in each run | 2/3 | 2/3 | 2/3 | MISSED |
+| 4. Appeal path | 5/5 valid appeals succeed and are recorded | 5/5 | 5/5 | 5/5 | MET |
+| 5. Bad input | 10/10 invalid requests return 4xx with no decision | 10/10 | 10/10 | 10/10 | MET |
+
+Real output: my one-sentence DC-offset paragraph (Criterion 2 input 9),
+Trial 1, copied verbatim from `results/run_2026-11-04_2150_after2.md`. Before
+this change it scored `0.3981` "unsure" with `style_score` `0.6661`:
+
+```json
+{
+  "status": 200,
+  "guess": "human",
+  "confidence": 0.2888,
+  "model_score": 0.2194,
+  "style_score": 0.393,
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "sent": "When applying a -1 V DC offset, an inverse shift in the DC domain is p"
+}
+```
+
+And the cost, EV07, copied verbatim from
+`results/attack_run_2026-11-04_2146_after2.md`. Before this change it scored
+`0.63` with `style_score` `0.6956`:
+
+```json
+{
+  "id": "EV07",
+  "status": 200,
+  "content_id": "2572c8a8-afbf-49cb-997b-dc227ad97e81",
+  "creator_id": "attacker_EV07",
+  "guess": "unsure",
+  "confidence": 0.5304,
+  "model_score": 0.5862,
+  "style_score": 0.4466,
+  "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+  "error": null,
+  "verdict": ""
+}
+```
+
+### Prediction vs. result
+
+| Measure | Predicted | Measured |
+|---|---|---|
+| Criterion 1 | 1/10 | 1/10 in all three trials |
+| Criterion 2 gap | 0.0679 | 0.0679 in all three trials |
+| Criterion 3 | 2/3 | 2/3 in all three trials |
+| DC-offset paragraph | 0.289 human | 0.2888 human in all three trials |
+| Attack verdicts | no change | no change (16 broke / 40 held) |
+| EV07 | 0.530 unsure | 0.5304 unsure |
+| FL01, MF03, MF04 | still human, lower | 0.1472, 0.0689, 0.2613: all human |
+
+Every prediction held to the fourth decimal place. That was expected: GPT-2's
+scores are deterministic, and the change only touches the style signal,
+which is plain arithmetic.
+
+**Did it help, and how do I know:** a little, and only where the diagnosis
+said it would.
+- Criterion 2's gap improved from `0.0460` to `0.0679`, about 48%, but it is
+  still far short of `0.25`.
+- My DC-offset paragraph now gets the human label in every trial. It is the
+  first human label any of my criteria runs has produced, and it comes from
+  exactly the input the Criterion 3 diagnosis named.
+- Criterion 3 stays MISSED as I measure it, from its own three scenario
+  inputs, and I kept that method so all three tables compare directly.
+  Strictly, the criterion's wording is "within one evaluation run, at least
+  one submission must receive each of the three labels," and under that
+  wording each after-2 trial now contains all three labels: human from the
+  DC-offset paragraph, unsure and ai from the others. I am not changing the
+  verdict, because that would change how the criterion is measured after
+  seeing the result. I note it as the most likely next MET.
+- Criteria 1, 4 and 5 and all 56 attack verdicts are unchanged.
+
+**What it cost:** exactly the declared cost. Single-sentence text is now
+judged on vocabulary and punctuation alone, and for EV07, a one-sentence
+evasion attack, that lowered its score from `0.63` to `0.5304`. EV07 was
+already BROKE, so the count did not change, but the attack now clears the AI
+threshold by `0.12` instead of `0.02`. Any one-sentence AI text gains the
+same easier path. Signal two's backwards reading on my multi-sentence
+writing (the vocabulary-variety half of the Criterion 2 diagnosis) is
+untouched. That is why the gap is still small, and it is the next thing to
+fix.
 
 
 
