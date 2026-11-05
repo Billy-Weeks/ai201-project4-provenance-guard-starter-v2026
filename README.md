@@ -1160,6 +1160,61 @@ are readers, and honest writers whose work sits beside AI text the service
 let through unlabeled. The alternative makes individual real writers pay
 through public false accusations, like FP03, which is the more serious harm.
 
+---
+
+## Unit 8 Stretch — Second Measured Improvement
+
+**Declared (not yet built).** This section is committed before any code
+changes, so the history shows the declaration came first.
+
+**What I will change:** in `stylometry.py`, a text with fewer than two
+sentences will no longer get the most AI-like sentence-spread value. Right
+now `sentence_length_spread` returns `0` when there is only one sentence, and
+`style_signal` turns that into `spread_ai = 1.0`, the strongest possible "AI"
+reading. After the change, a single-sentence text will be treated as having
+no spread measurement. `style_signal` will leave that feature out and
+reweight the two features it *can* measure (vocabulary `0.35` and punctuation
+`0.20`, rescaled to sum to 1). Texts with two or more sentences will score
+exactly as before. Nothing else will change: not the model signal, the
+weights in `config.py`, the thresholds, or the route.
+
+**Which diagnosis points at it:** the Criterion 2 and Criterion 3 diagnoses
+above, at the signal two stage. The lowest model score in the whole run
+(`0.2194`, my one-sentence DC-offset paragraph) would have reached the human
+band, but the single-sentence rule pushed its style score to `0.6661` and
+its combined score to `0.398`. "I could not measure this" was being scored
+as "this looks like AI."
+
+**Prediction, written before building.** Because the model signal gave
+identical scores in every trial, I can recompute the new style scores for
+every input offline and predict the results exactly:
+
+| Measure | Now | Predicted after |
+|---|---|---|
+| Criterion 1 (my writing flagged AI) | 1/10 | 1/10, no change |
+| Criterion 2 (score gap) | 0.0460 | 0.0679, still MISSED |
+| Criterion 3 (labels from its three inputs) | 2/3 | 2/3, still MISSED |
+| DC-offset paragraph (Criterion 2 input) | 0.398 unsure | 0.289 **human**, the first human label in any criteria run |
+| Attack verdicts | 16 broke / 40 held | no verdict changes |
+| EV07 (evasion) | 0.630 unsure | 0.530 unsure, further from the AI label |
+| FL01 flood text, MF03, MF04 | human | still human, with lower scores |
+
+**What it is expected to cost:** single-sentence AI text gets an easier
+path. EV07 is a one-sentence evasion attack, and its score drops by `0.10`.
+It is already BROKE, so the count does not change, but it moves further from
+being caught.
+
+**How it will be measured:** the same way as the first improvement:
+
+```
+python run_attacks.py --set attack_set --label after2
+python run_eval.py --label after2
+```
+
+I will report a third attack table and a third criteria table in the same
+format as the two above, compare them with the prediction, and state plainly
+whether the change helped and what it cost.
+
 
 
 <!-- ═════════════════════════════════════════════════════════════════════
