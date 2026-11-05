@@ -232,6 +232,16 @@ def submit():
             message="text must not be empty.",
         )
         return jsonify({"error": "empty_text", "message": "text must not be empty."}), 400
+    if len(text.split()) < 3:
+        audit.log_rejection(
+            creator_id=creator_id,
+            reason="text_too_short",
+            message="text must contain at least three tokens.",
+        )
+        return jsonify({
+            "error": "text_too_short",
+            "message": "text must contain at least three tokens.",
+        }), 400
     if len(text) > config.MAX_TEXT_CHARS:
         audit.log_rejection(
             creator_id=creator_id,

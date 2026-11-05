@@ -850,17 +850,49 @@ that produced it. The complete three-trial report is
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** I added a route-boundary check in `app.py::submit` that
+rejects text with fewer than three whitespace-separated tokens. It returns a
+400 `text_too_short` response and writes a rejection entry before the detector
+is called.
 
-**Which diagnosis pointed at it:**
+**Which diagnosis pointed at it:** The baseline `MF02` attack sent one
+character. The route accepted it because it was non-empty and below the size
+limit, then `detector.perplexity` raised `ValueError` for fewer than three
+tokens. Flask returned an unhandled 500. The same boundary condition was also
+visible in the baseline behavior for the one-token `MF05` and `MF06` inputs.
 
 ### Attack Run — After
 
 <!-- Same format. `run_attacks.py --label after` -->
 
+The after run was produced by `run_attacks.py::main` in
+`results/attack_run_2026-11-04_1854_after.md`. The same 56 attacks were run in
+the same order. All verdicts stayed the same except that MF02, MF05, and MF06
+changed to controlled 400 responses and are now HELD.
+
+| ID | Family | Status before | Status after | Verdict after |
+|---|---|---:|---:|---|
+| MF01 | malformed | 400 | 400 | HELD |
+| MF02 | malformed | 500 | 400 | HELD |
+| MF03 | malformed | 200 | 200 | HELD |
+| MF04 | malformed | 200 | 200 | HELD |
+| MF05 | malformed | 200 | 400 | HELD |
+| MF06 | malformed | 200 | 400 | HELD |
+| MF07 | malformed | 200 | 200 | HELD |
+| MF08 | malformed | 400 | 400 | HELD |
+| RQ01–RQ12 | malformed | 400 | 400 | HELD |
+
+All other attack rows retained the same status, score, and held/broke verdict
+as the before table above. The full after report contains the complete 56-row
+table.
 
 
-**Did it help, and how do I know:**
+**Did it help, and how do I know:** Yes. It removed the only automatic 5xx
+failure and changed three malformed cases into controlled 400 responses. The
+five-criteria after run remained unchanged: Criteria 1, 4, and 5 were MET, and
+Criteria 2 and 3 were MISSED. The cost is that submissions shorter than three
+tokens are now rejected even if they are technically non-empty; this is
+necessary because the detector cannot measure them safely.
 
 <!-- Widening the unsure band usually fixes one problem and creates another.
      Reporting that trade honestly is worth full credit. -->
@@ -873,6 +905,14 @@ that produced it. The complete three-trial report is
 
 <!-- For each attack still getting through and each criterion still missed:
      what you'd do, and why you stopped. -->
+
+The remaining evasion attacks, the six false-positive attacks, and the first
+ten requests in the flood sequence still produce the same outcomes. Criterion
+2 still misses because the AI/human average score gap is only `0.0460` instead
+of `0.25`, and Criterion 3 still misses because no input reached the
+high-confidence-human band. I stopped after the short-input fix so the
+before/after comparison would isolate one diagnosed change; the next possible
+change would need to address signal separation or the label thresholds.
 
 
 
