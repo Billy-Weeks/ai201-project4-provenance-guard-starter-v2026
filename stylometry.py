@@ -146,11 +146,20 @@ def style_signal(text: str) -> float:
     vocabulary_ai = 1.0 - vocabulary
     punctuation_ai = 1.0 - min(punctuation / 0.20, 1.0)
 
-    score = (
-        0.45 * spread_ai
-        + 0.35 * vocabulary_ai
-        + 0.20 * punctuation_ai
-    )
+    # Unit 8 stretch (second improvement): spread needs at least two
+    # sentences. With fewer, `sentence_length_spread` returns 0, which used to
+    # become spread_ai = 1.0 -- "I could not measure this" scored as "most
+    # AI-like". Now an unmeasurable spread is left out and the two measured
+    # features are reweighted (0.35 and 0.20 rescaled to sum to 1).
+    measured_sentences = sum(1 for sentence in sentences(text) if words(sentence))
+    if measured_sentences < 2:
+        score = (0.35 * vocabulary_ai + 0.20 * punctuation_ai) / 0.55
+    else:
+        score = (
+            0.45 * spread_ai
+            + 0.35 * vocabulary_ai
+            + 0.20 * punctuation_ai
+        )
     return round(min(max(score, 0.0), 1.0), 4)
 
 
