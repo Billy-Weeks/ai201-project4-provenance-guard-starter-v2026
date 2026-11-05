@@ -317,6 +317,24 @@ $ curl "http://127.0.0.1:5000/log?limit=2"
 - *What came back:* Three gaps. No submission had reached the high-confidence human label. My "signals split" paragraph described the opposite of my own calibration data. Criterion 5 referred to a "documented maximum" text length that did not exist, and empty text was being scored instead of rejected.
 - *What I changed:* I had the AI fix all three, and I reviewed each edit before committing. A text submission reached the human label (`0.1341`) and was added under Label Variants. The disagreement paragraph was rewritten around the real formal-human numbers. `MAX_TEXT_CHARS = 10000` was added to `config.py`, along with a check in `app.py::submit` that returns `400` for empty or oversized text, and criterion 5 now names that limit.
 
+**Moment 3 — Unit 8 testing and improvement**
+
+- *What I asked for:* I used the AI as a testing partner to help organize my scenarios, check my interpretations, and connect observed failures to specific pipeline stages.
+- *What came back:* The baseline showed that the system was repeatable but not well separated: formal human writing often received high AI scores, several evasion inputs moved into the unsure or human bands, and a one-character request crashed inside the detector.
+- *What I changed:* I chose the crash because its mechanism was clear and its fix was limited to the route boundary. I added a minimum-token validation rule and measured it again. The fix removed the 500 and produced controlled rejections, but it did not improve the underlying score separation or label coverage.
+
+**Moment 4 — Turning previous writing into repeatable tests**
+
+- *What I asked for:* I asked the AI to inspect two of my previous papers, separate assignment instructions from my authored paragraphs, and help format suitable samples for `scenarios.py`.
+- *What came back:* The AI identified four paragraphs from my English paper and six analysis or observation paragraphs from my lab report. It excluded headings, procedures, questions, tables, and copied instructions.
+- *What I changed:* I reviewed the selections and confirmed they were my writing before using them. The AI handled the extraction and formatting, but I supplied and approved the source material; it did not invent writing and label it as mine.
+
+**Moment 5 — Checking my diagnoses against the raw scores**
+
+- *What I asked for:* A review of the whole Unit 8 write-up against the instructions, the rubric, and last unit's feedback.
+- *What came back:* The verdicts matched the raw run files. But three evasion diagnoses named the wrong signal: EV01's typos fooled signal one (model `0.1635`), not signal two. Held/broke counts were missing, and the after attack table was only a partial table in a different format. The flood rows were marked BROKE with a diagnosis saying they worked as intended. And MF06/MF07, emoji and right-to-left text labeled AI at `0.998` and `0.939`, were marked HELD only because they did not crash.
+- *What I changed:* I had the AI rewrite the diagnoses from the per-signal scores in the raw reports. This turned up the main finding of the unit: signal two scores my writing as *more* AI-like than the AI samples (−0.0845). I re-marked MF05–MF07 as BROKE under a stated rule, and added the counts and the full after table. I checked that only MF02, MF05 and MF06 differ between the two raw reports. Nothing was re-run; every number comes from the existing `results/` files and `logs/audit.jsonl`.
+
 ---
 
 ## Stretch Feature
@@ -402,9 +420,14 @@ that leaves room for a writer's normal daily activity and retries without
 allowing a sustained high-volume mapping attack. The limits are keyed to a
 valid `creator_id`; requests without one fall back to the caller's address.
 
-**What a caller counts as:** <!-- per address, or per creator_id? They fail
-differently — one script can look like a thousand callers, and one household
-can look like one. -->
+**What a caller counts as:** a `creator_id`. `app.py::rate_limit_key` uses the
+request's `creator_id` when it is a non-empty string, and falls back to the
+caller's IP address only when it is missing or malformed. This means a
+household or classroom sharing one address does not share one limit, but it
+also means the limit is easy to dodge: a script that changes `creator_id` on
+every request gets a fresh 10-per-minute allowance each time. The staff attack
+set shows this directly: every attack submitted as its own `attacker_<id>`, so
+only FL01, which reused one creator, ever reached the limit.
 
 **The run of status codes when I pushed past it:**
 
@@ -419,6 +442,30 @@ one `ReadTimeout` while the detector model loaded, so I waited for the service
 to warm up and repeated the test. This clean run produced 10 accepted requests
 followed by 5 rate-limited requests, matching the 10-per-minute limit. The
 five `429` responses were also recorded as rejected events in the audit log.
+The last accepted request and the first rejected one from that flood run, as
+they appear in `logs/audit.jsonl`:
+
+```json
+{
+  "combined_score": 0.2795,
+  "content_id": "bba829d7-fcd5-412f-bd51-dee699ea10b8",
+  "creator_id": "flood_tester",
+  "guess": "human",
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "model_score": 0.2587,
+  "status": "decided",
+  "style_score": 0.3107,
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+{
+  "creator_id": "flood_tester",
+  "event": "rejected",
+  "limit": "10 per 1 minute",
+  "reason": "rate_limited",
+  "status": "rejected",
+  "timestamp": "2026-11-03T02:38:39+00:00"
+}
+```
 
 ---
 
@@ -430,9 +477,15 @@ five `429` responses were also recorded as rejected events in the audit log.
 The runner produced 56 inputs. I marked evasion attacks as BROKE when they
 avoided the AI label, false-positive attacks as BROKE when human text received
 the AI label, prompt-injection attacks as BROKE only if their instruction
-changed service behavior, malformed attacks as BROKE when they caused an unsafe
-failure, and flood requests according to whether the limiter accepted or
-rejected each request.
+changed service behavior, and malformed attacks as BROKE when they crashed the
+service (a 5xx) or got a high-confidence AI label for input that is not
+measurable prose. The second malformed rule follows from my Criterion 1
+reasoning: an accusation is the expensive mistake, and calling emoji or a
+right-to-left script "probably generated by AI" is still an accusation against
+whoever sent it. The flood rows are judged as one attack against the rate
+limiter. Requests 1–10 fall inside the configured `10 per 1 minute` and are
+accepted by design, and the limiter stopped the flood at request 11, so every
+FL01 row is HELD.
 
 | ID | Family | Status | Guess | Score | Verdict |
 |---|---|---:|---|---:|---|
@@ -464,9 +517,9 @@ rejected each request.
 | MF02 | malformed | 500 | — | — | BROKE |
 | MF03 | malformed | 200 | human | 0.218 | HELD |
 | MF04 | malformed | 200 | human | 0.327 | HELD |
-| MF05 | malformed | 200 | ai | 0.859 | HELD |
-| MF06 | malformed | 200 | ai | 0.998 | HELD |
-| MF07 | malformed | 200 | ai | 0.939 | HELD |
+| MF05 | malformed | 200 | ai | 0.859 | BROKE |
+| MF06 | malformed | 200 | ai | 0.998 | BROKE |
+| MF07 | malformed | 200 | ai | 0.939 | BROKE |
 | MF08 | malformed | 400 | — | — | HELD |
 | RQ01 | malformed | 400 | — | — | HELD |
 | RQ02 | malformed | 400 | — | — | HELD |
@@ -480,129 +533,75 @@ rejected each request.
 | RQ10 | malformed | 400 | — | — | HELD |
 | RQ11 | malformed | 400 | — | — | HELD |
 | RQ12 | malformed | 400 | — | — | HELD |
-| FL01_01 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_02 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_03 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_04 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_05 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_06 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_07 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_08 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_09 | flood_same_creator | 200 | human | 0.269 | BROKE |
-| FL01_10 | flood_same_creator | 200 | human | 0.269 | BROKE |
+| FL01_01 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_02 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_03 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_04 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_05 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_06 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_07 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_08 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_09 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_10 | flood_same_creator | 200 | human | 0.269 | HELD |
 | FL01_11 | flood_same_creator | 429 | — | — | HELD |
 | FL01_12 | flood_same_creator | 429 | — | — | HELD |
 
-The complete raw report is `results/attack_run_2026-11-04_1719_before.md`.
+**Count — before:**
+
+| Family | Attacks | Held | Broke |
+|---|---:|---:|---:|
+| evasion | 10 | 1 | 9 |
+| false positive | 8 | 2 | 6 |
+| prompt injection | 6 | 6 | 0 |
+| malformed (MF + RQ) | 20 | 16 | 4 |
+| flood_same_creator | 12 | 12 | 0 |
+| **Total** | **56** | **37** | **19** |
+
+The complete raw report is `results/attack_run_2026-11-04_1719_before.md`. The
+Verdict column there is blank except for the one auto-marked 5xx. The marks
+above are mine, applied with the rules stated at the top of this section.
 
 
 **Ten audit log entries from the run**
 
 <!-- Choose entries that show the interesting failures, not the ten easiest. -->
 
-```json
-{
-  "combined_score": 0.2795,
-  "content_id": "ef5dcabb-b021-49ab-9428-954d3ed9fac6",
-  "creator_id": "flood_tester",
-  "guess": "human",
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "model_score": 0.2587,
-  "status": "decided",
-  "style_score": 0.3107,
-  "timestamp": "2026-11-03T02:38:38+00:00"
-}
-{
-  "combined_score": 0.2795,
-  "content_id": "d0b1bffe-9516-4538-8359-acccfa451d36",
-  "creator_id": "flood_tester",
-  "guess": "human",
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "model_score": 0.2587,
-  "status": "decided",
-  "style_score": 0.3107,
-  "timestamp": "2026-11-03T02:38:38+00:00"
-}
-{
-  "combined_score": 0.2795,
-  "content_id": "73d748f8-99b4-49e0-b6bc-897f3ef01527",
-  "creator_id": "flood_tester",
-  "guess": "human",
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "model_score": 0.2587,
-  "status": "decided",
-  "style_score": 0.3107,
-  "timestamp": "2026-11-03T02:38:38+00:00"
-}
-{
-  "combined_score": 0.2795,
-  "content_id": "ad17ea5a-2aec-40fa-8b69-bc56828ca3df",
-  "creator_id": "flood_tester",
-  "guess": "human",
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "model_score": 0.2587,
-  "status": "decided",
-  "style_score": 0.3107,
-  "timestamp": "2026-11-03T02:38:38+00:00"
-}
-{
-  "combined_score": 0.2795,
-  "content_id": "bba829d7-fcd5-412f-bd51-dee699ea10b8",
-  "creator_id": "flood_tester",
-  "guess": "human",
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "model_score": 0.2587,
-  "status": "decided",
-  "style_score": 0.3107,
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-{
-  "creator_id": "flood_tester",
-  "event": "rejected",
-  "limit": "10 per 1 minute",
-  "reason": "rate_limited",
-  "status": "rejected",
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-{
-  "creator_id": "flood_tester",
-  "event": "rejected",
-  "limit": "10 per 1 minute",
-  "reason": "rate_limited",
-  "status": "rejected",
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-{
-  "creator_id": "flood_tester",
-  "event": "rejected",
-  "limit": "10 per 1 minute",
-  "reason": "rate_limited",
-  "status": "rejected",
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-{
-  "creator_id": "flood_tester",
-  "event": "rejected",
-  "limit": "10 per 1 minute",
-  "reason": "rate_limited",
-  "status": "rejected",
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-{
-  "creator_id": "flood_tester",
-  "event": "rejected",
-  "limit": "10 per 1 minute",
-  "reason": "rate_limited",
-  "status": "rejected",
-  "timestamp": "2026-11-03T02:38:39+00:00"
-}
-```
+All ten come from `logs/audit.jsonl` during the before attack run (creator ids
+`attacker_<id>`), in this order:
 
-The selected entries below are from the staff attack run and include the
-interesting evasion, false-positive, prompt-injection, malformed, and flood
-outcomes. The final entry is a rejected request.
+1. EV01: typos let AI text through as "human." The model score was 0.16, so it was signal one that was fooled.
+2. EV09: the model still read it as AI (0.70), but signal two (0.47) pulled it into "unsure."
+3. FP03: the worst outcome, a careful non-native writer labeled AI.
+4. FP07: deliberate repetition labeled AI, with the highest model score of any FP attack (0.88).
+5. PI05: tried to inject into the audit log. It held, because the log never stores the submitted text.
+6. MF06: emoji only, labeled AI at 0.998.
+7. MF07: right-to-left script, labeled AI at 0.939.
+8. RQ01: a route-level rejection (`missing_fields`, HTTP 400).
+9. FL01_10: the last flood request the limiter allowed.
+10. FL01_11: the first flood request the limiter rejected (HTTP 429).
+
+Two things the log shows that the table does not:
+
+- Rejected entries have no `content_id`, scores or label, because no decision
+  was ever made. They carry `timestamp`, `creator_id`, `status` and the reason.
+- MF02, the one request that crashed with a 500, has **no entry at all**. The
+  exception was raised before `audit.log_decision` or `audit.log_rejection`
+  ran, so the only failure that broke the service was also the only one that
+  left no trace. The short-input fix below changes that: after it, MF02 is
+  logged as a `text_too_short` rejection.
 
 ```json
+{
+  "timestamp": "2026-11-05T01:19:22+00:00",
+  "content_id": "a2f9254d-7d42-42a9-9369-c5d6111828df",
+  "creator_id": "attacker_EV01",
+  "guess": "human",
+  "model_score": 0.1635,
+  "style_score": 0.6038,
+  "combined_score": 0.3396,
+  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "status": "decided"
+}
 {
   "timestamp": "2026-11-05T01:19:26+00:00",
   "content_id": "7d667f76-b8ea-45b7-8cef-ea74b539bd03",
@@ -615,13 +614,13 @@ outcomes. The final entry is a rejected request.
   "status": "decided"
 }
 {
-  "timestamp": "2026-11-05T01:19:29+00:00",
-  "content_id": "f4773225-c96d-4835-a08d-3b50a6f4bb49",
-  "creator_id": "attacker_FP02",
+  "timestamp": "2026-11-05T01:19:28+00:00",
+  "content_id": "8b5cca78-58ea-4236-bdcc-0786307877d4",
+  "creator_id": "attacker_FP03",
   "guess": "ai",
-  "model_score": 0.7387,
-  "style_score": 0.6233,
-  "combined_score": 0.6925,
+  "model_score": 0.8051,
+  "style_score": 0.5785,
+  "combined_score": 0.7145,
   "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
   "status": "decided"
 }
@@ -638,17 +637,6 @@ outcomes. The final entry is a rejected request.
 }
 {
   "timestamp": "2026-11-05T01:19:31+00:00",
-  "content_id": "7d37397f-cd47-4712-8bff-7dd97d014992",
-  "creator_id": "attacker_PI02",
-  "guess": "human",
-  "model_score": 0.2044,
-  "style_score": 0.3365,
-  "combined_score": 0.2572,
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
-  "status": "decided"
-}
-{
-  "timestamp": "2026-11-05T01:19:31+00:00",
   "content_id": "56396853-5f1d-4041-94f0-bd9af2264dec",
   "creator_id": "attacker_PI05",
   "guess": "unsure",
@@ -656,17 +644,6 @@ outcomes. The final entry is a rejected request.
   "style_score": 0.342,
   "combined_score": 0.5209,
   "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
-  "status": "decided"
-}
-{
-  "timestamp": "2026-11-05T01:19:34+00:00",
-  "content_id": "8ebcde77-9aff-45bc-b596-a9440c317f9e",
-  "creator_id": "attacker_MF03",
-  "guess": "human",
-  "model_score": 0.0,
-  "style_score": 0.5447,
-  "combined_score": 0.2179,
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
   "status": "decided"
 }
 {
@@ -682,14 +659,22 @@ outcomes. The final entry is a rejected request.
 }
 {
   "timestamp": "2026-11-05T01:19:35+00:00",
-  "content_id": "25b39027-944f-4163-9abc-4136d67a6f55",
-  "creator_id": "attacker_flood",
-  "guess": "human",
-  "model_score": 0.0287,
-  "style_score": 0.6287,
-  "combined_score": 0.2687,
-  "label": "We think this was probably written by a person. If this is your work, no action is needed.",
+  "content_id": "57c1761a-8218-4501-b3a1-ec7b5ca7d6f0",
+  "creator_id": "attacker_MF07",
+  "guess": "ai",
+  "model_score": 0.9064,
+  "style_score": 0.9888,
+  "combined_score": 0.9394,
+  "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
   "status": "decided"
+}
+{
+  "timestamp": "2026-11-05T01:19:35+00:00",
+  "creator_id": "attacker_RQ01",
+  "event": "rejected",
+  "status": "rejected",
+  "reason": "missing_fields",
+  "message": "POST /submit requires text and creator_id."
 }
 {
   "timestamp": "2026-11-05T01:19:36+00:00",
@@ -706,9 +691,9 @@ outcomes. The final entry is a rejected request.
   "timestamp": "2026-11-05T01:19:36+00:00",
   "creator_id": "attacker_flood",
   "event": "rejected",
+  "status": "rejected",
   "reason": "rate_limited",
-  "limit": "10 per 1 minute",
-  "status": "rejected"
+  "limit": "10 per 1 minute"
 }
 ```
 
@@ -732,10 +717,50 @@ was labeled high-confidence AI with a combined score of `0.7145`.
 | 4. Appeal path | 5/5 valid appeals succeed and are recorded | 5/5 | 5/5 | 5/5 | MET |
 | 5. Bad input | 10/10 invalid requests return 4xx with no decision | 10/10 | 10/10 | 10/10 | MET |
 
-**Real output from one trial**, pasted as text, naming the file and function
-that produced it. The complete three-trial report is
-`results/run_2026-11-04_1533_before.md`, produced by
-`run_eval.py::main`, calling `app.py::submit` and the appeal path.
+**Real output from one trial**, pasted as text. The complete three-trial report
+is `results/run_2026-11-04_1533_before.md`, produced by `run_eval.py::main`,
+which sends each scenario in `scenarios.py` to `app.py::submit` (and to
+`app.py::appeal` for Criterion 4).
+
+This is Criterion 3, Trial 1, copied verbatim from that file. It is the run
+that shows the miss: the AI-written sample came back `unsure`, my own lab
+paragraph came back `ai`, and nothing reached `human`.
+
+```json
+[
+  {
+    "status": 200,
+    "guess": "unsure",
+    "confidence": 0.5016,
+    "model_score": 0.4582,
+    "style_score": 0.5667,
+    "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+    "sent": "The implementation of a reliable measurement system requires careful c"
+  },
+  {
+    "status": 200,
+    "guess": "ai",
+    "confidence": 0.6614,
+    "model_score": 0.6389,
+    "style_score": 0.6952,
+    "label": "We think this was probably generated by AI. If you wrote this yourself, you can appeal for review.",
+    "sent": "With the much large resistance values (1 M\u03a9, 470 k\u03a9, 100 k\u03a9) there was"
+  },
+  {
+    "status": 200,
+    "guess": "unsure",
+    "confidence": 0.4769,
+    "model_score": 0.4665,
+    "style_score": 0.4925,
+    "label": "We could not confidently determine who wrote this. If this is your work, you can appeal for review.",
+    "sent": "Sometimes a result looks convincing at first because the numbers seem "
+  }
+]
+```
+
+A condensed view of Trial 1 for all five criteria, from the same file. The
+fields are trimmed to keep it readable; the numbers are copied, not
+recalculated:
 
 ```json
 {
@@ -785,50 +810,114 @@ that produced it. The complete three-trial report is
 
 **Diagnoses**
 
-- **Criterion 2 missed — combining rule / both signals:** the five AI-style
-  inputs averaged `0.5109`, while the five human-written inputs averaged
-  `0.4648`, a gap of only `0.0460` instead of the target `0.25`. The model and
-  style signals assigned overlapping scores to the two groups, and the current
-  weighted combination (`0.6` model plus `0.4` style) preserved that overlap.
-- **Criterion 3 missed — label mapping:** the run reached `unsure` and `ai`,
-  but no input scored below the human threshold of `0.35`. The lowest observed
-  combined score was `0.3594`, so the label mapping had no input in its
-  high-confidence-human band.
-- Criteria 1, 4, and 5 met their targets in all three trials. Criterion 5's
-  invalid requests were stopped at the route boundary with 400 responses and
-  were not turned into `decided` entries.
+- **Criterion 2 missed. Stage: signal two, which the combining rule then lets
+  cancel signal one.** Averaged over the five AI and five human inputs, Trial 1:
+
+  | Signal | AI average | Human average | Separation |
+  |---|---:|---:|---:|
+  | model (signal one) | 0.5196 | 0.3865 | +0.1331 |
+  | style (signal two) | 0.4978 | 0.5823 | **−0.0845** |
+  | combined (0.6 / 0.4) | 0.5109 | 0.4648 | +0.0460 |
+
+  Signal one separates the groups in the right direction, though by less
+  than 0.25 on its own. Signal two runs **backwards** on this set: it rates
+  my writing as more AI-like than the AI text. Two features in
+  `stylometry.style_signal` cause this. First, vocabulary variety: my lab
+  paragraphs repeat technical terms (resistor, voltage, DMM, function
+  generator), so their type-token ratio averages 0.77 against 0.89 for the
+  AI samples, and lower variety scores as more AI. Second, sentence spread:
+  one of my paragraphs is a single sentence, and `sentence_length_spread`
+  returns 0 for fewer than two sentences, which `style_signal` maps to the
+  most AI-like value. The third feature, punctuation density, sits around
+  0.02 for both groups against the 0.20 cap, so it adds about 0.18 to every
+  text and separates nothing. Because a weighted average can only land
+  between its inputs, `0.6 × 0.1331 + 0.4 × (−0.0845) = 0.046`. The combining
+  rule faithfully passes on a signal that points the wrong way.
+- **Criterion 3 missed. Stage: signal two (the single-sentence rule), with
+  signal one never going low enough to compensate.** With style scores
+  between 0.34 and 0.70 for every input in the run, the combined score can
+  only drop below 0.35 if the model score is very low. The lowest model
+  score in the entire run was `0.2194`, for my one-sentence DC-offset
+  paragraph. On its own that would have put it in the human band, but signal
+  two scored it `0.6661` because it is one sentence (the zero-spread rule
+  above), and `0.6 × 0.2194 + 0.4 × 0.6661 = 0.398` landed it in "unsure."
+  With a style score below about 0.55, it would have reached the human label.
+  The three label-coverage inputs also inverted: the AI sample got model
+  `0.4582` ("unsure"), and my own lab paragraph got model `0.6389` and style
+  `0.6952` ("ai"). The thresholds themselves are fine. No input reached the
+  human band because of what the signals feed into them.
+- Criteria 1, 4, and 5 met their targets in all three trials, with identical
+  results in each trial, so there was no instability to explain. Criterion
+  5's invalid requests were stopped at the route with 400 responses and no
+  label. Criterion 1 met its target exactly at the limit (1 of 10 in every
+  trial), and that one flagged paragraph is the same lab paragraph that
+  inverted in Criterion 3.
 
 **Attack diagnoses**
 
-- **EV01–EV03 and EV06–EV07 — signal two / combining rule:** the evasion text
-  changed punctuation, sentence-length spread, quotations, or wording enough
-  to alter the style score. The combined score then fell into the human or
-  unsure band instead of the AI band, so the edits let the AI text pass.
-- **EV04 and EV08 — signal one / combining rule:** unusual vocabulary raised
-  perplexity in EV04, while the short below-window text in EV08 produced a low
-  model score. With the model signal weighted at `0.6`, those low AI-like model
-  scores pulled the combined results to `0.6051` and `0.3419`, respectively,
-  so neither received the AI label.
-- **EV05 and EV09 — both signals / combining rule:** the human editing pass and
-  the human-style opening changed both signal inputs enough to move the result
-  to human or unsure. The combining rule therefore did not preserve the AI
-  signal for either attack.
-- **FP02–FP07 — signal one / combining rule:** formal, structured, repetitive,
-  and technical human writing received high model scores (`0.7387` to `0.8816`).
-  The style signal did not offset those values enough, and the `0.6` model
-  weight pushed every combined score above the `0.65` AI threshold.
-- **MF02 — route/dependency boundary:** one-character text passed the route's
-  empty and length checks. `detector.perplexity` then raised `ValueError` for
-  fewer than three tokens, and `submit` did not catch it, so Flask returned an
-  HTML 500 instead of a controlled 4xx response.
-- **FL01_01–FL01_10 — rate-limiter stage:** the per-creator limit intentionally
-  permits the first ten requests in a minute, so those requests were accepted.
-  FL01_11 and FL01_12 were held when the same creator exceeded `10 per 1
-  minute` and received 429 responses.
-- **PI01–PI06 and the other malformed requests held:** the prompt text did not
-  alter the fixed label message or inject fields into the JSONL audit entries,
-  and the malformed requests that returned 400 or a normal decision did not
-  crash the service. The one malformed attack that did break was MF02 above.
+Signal scores below are copied from `results/attack_run_2026-11-04_1719_before.md`.
+
+- **Signal one fooled: EV01 (typos), EV07 (punctuation padding), EV08 (text
+  below the token window).** Model scores were `0.1635`, `0.5862` and `0.2452`,
+  while the style scores stayed middling to AI-like (`0.6038`, `0.6956`,
+  `0.4870`).
+  Misspellings and stray punctuation marks are rare token sequences for
+  GPT-2, so they raise perplexity, and `model_signal` maps higher perplexity
+  to a lower AI score. EV08's short text gives the model too little context to
+  find it predictable. The staff set aimed EV01 and EV07 at signal two, but
+  signal two was not the stage that broke: EV07's style score of `0.6956` is
+  the most AI-like of any evasion attack except EV10. The model signal
+  carries `0.6` of the weight, so its drop decided the label.
+- **Signal two fooled: EV02 (broken-up sentences), EV03 (pasted quotation),
+  EV06 (one very long sentence and one very short), EV09 (human opening
+  bolted on).** Model scores stayed AI-like (`0.5943`, `0.6662`, `0.5727`,
+  `0.7042`), but style scores fell to `0.3067`, `0.4768`, `0.2729` and `0.4659`.
+  Each edit changes sentence-length spread, which carries the largest style
+  weight (`0.45`), and in EV09 the bolted-on human paragraph adds sentences
+  of a different shape to the rest. Even where signal one still read AI
+  (EV03, EV09), the combining rule averaged it with the lower style score and
+  landed below `0.65`.
+- **Both signals fooled: EV05 (heavy human editing pass).** Model `0.3212` and
+  style `0.3930`. The editing changed both the wording (perplexity) and the
+  shape (spread and vocabulary), so no stage had anything left to catch.
+- **Label mapping: EV04 (unusual words).** Model `0.6114` and style `0.5956`.
+  Both signals lean AI, but both sit below `0.65`, and a weighted average
+  cannot exceed its larger input. So the `0.65` threshold cannot be reached
+  unless at least one signal clears it. The unusual vocabulary left signal one
+  just under the line, giving a combined score of `0.6051`.
+- **Signal one: FP02–FP07 (formal, non-native, rubric-essay, technical,
+  template, and deliberately repetitive human writing).** Model scores were
+  `0.7387`–`0.8816`. Careful, conventional prose is exactly what a language
+  model finds predictable, so low perplexity reads as AI. That is the blind
+  spot named under Signal one above. Signal two did not pull these back
+  (`0.4784`–`0.6426`) for the same reasons as in Criterion 2, and with `0.6`
+  on the model, every combined score cleared `0.65`. This is one problem
+  showing up six times, not six problems.
+- **Route: MF02 (one character).** It passed the route's empty and length
+  checks. `detector.perplexity` then raised `ValueError` because there were
+  fewer than three tokens. `submit` did not catch it, so Flask returned an
+  HTML 500 and no audit entry was written.
+- **Route, then both signals: MF05 (one very long word), MF06 (emoji only),
+  MF07 (right-to-left script).** The route lets any non-empty text through,
+  and neither signal can measure these inputs. Both then fail toward "AI":
+  - **Signal one:** GPT-2's byte-level tokenizer breaks each emoji, non-Latin
+    character, or unbroken run of letters into several byte tokens, and once
+    the first byte is seen the rest are nearly certain. Very low perplexity
+    gave model scores of `0.9976`, `0.9969` and `0.9064`.
+  - **Signal two:** `stylometry.words` only matches `[a-z0-9']`, so emoji and
+    right-to-left (non-Latin) text contain *zero* words. Zero words gives
+    zero sentence spread and zero vocabulary variety, which `style_signal` maps to the most
+    AI-like values, hence style `1.0` for MF06 and `0.9888` for MF07.
+- **What held, and why.**
+  - **PI01–PI06:** the label text is a fixed string from `scoring.py`, and
+    nothing reads the submitted text as instructions. PI05's attempted log
+    injection had nowhere to land: the audit log never stores the submitted
+    text, only ids, scores and the label, and every entry is written with
+    `json.dumps`, so it stays one well-formed line.
+  - **RQ01–RQ12, MF01, MF08:** rejected at the route with 400.
+  - **MF03 and MF04:** they reached the signals but were labeled "human," so
+    no one was accused.
+  - **FL01:** the limiter stopped the flood at request 11.
 
 <!-- For each miss AND each broken attack: the stage and the mechanism.
 
@@ -855,44 +944,135 @@ rejects text with fewer than three whitespace-separated tokens. It returns a
 400 `text_too_short` response and writes a rejection entry before the detector
 is called.
 
-**Which diagnosis pointed at it:** The baseline `MF02` attack sent one
-character. The route accepted it because it was non-empty and below the size
-limit, then `detector.perplexity` raised `ValueError` for fewer than three
-tokens. Flask returned an unhandled 500. The same boundary condition was also
-visible in the baseline behavior for the one-token `MF05` and `MF06` inputs.
+**Which diagnosis pointed at it:** the MF02 diagnosis, at the route stage.
+The baseline `MF02` attack sent one character. The route accepted it because
+it was non-empty and under the size limit. Then `detector.perplexity` raised
+`ValueError` for fewer than three tokens, and Flask returned an unhandled 500
+with no audit entry. I chose this one because the mechanism was certain and
+the fix sits entirely at the route, so it cannot move any score. That keeps
+the before/after comparison clean. The fix also covers MF05 and MF06, which
+are under three whitespace tokens. Before the fix they did not crash; they
+were accused (`0.859` and `0.998`), for the route-then-both-signals reason
+diagnosed above.
+
+Why three whitespace tokens: every whitespace-separated word becomes at least
+one GPT-2 token, so any text that passes this check has at least three model
+tokens. That means the `ValueError` branch in `detector.perplexity` can no
+longer be reached from `/submit`.
 
 ### Attack Run — After
 
 <!-- Same format. `run_attacks.py --label after` -->
 
-The after run was produced by `run_attacks.py::main` in
-`results/attack_run_2026-11-04_1854_after.md`. The same 56 attacks were run in
-the same order. All verdicts stayed the same except that MF02, MF05, and MF06
-changed to controlled 400 responses and are now HELD.
+Produced by `run_attacks.py::main`; the raw report is
+`results/attack_run_2026-11-04_1854_after.md`. The same 56 attacks, in the
+same order, judged by the same rules as the before table. Only three rows
+differ from before: MF02 (500 → 400), MF05 (200 `ai` → 400) and MF06 (200 `ai`
+→ 400). I checked this row by row against both raw reports; every other row
+has the same status, guess and score.
 
-| ID | Family | Status before | Status after | Verdict after |
-|---|---|---:|---:|---|
-| MF01 | malformed | 400 | 400 | HELD |
-| MF02 | malformed | 500 | 400 | HELD |
-| MF03 | malformed | 200 | 200 | HELD |
-| MF04 | malformed | 200 | 200 | HELD |
-| MF05 | malformed | 200 | 400 | HELD |
-| MF06 | malformed | 200 | 400 | HELD |
-| MF07 | malformed | 200 | 200 | HELD |
-| MF08 | malformed | 400 | 400 | HELD |
-| RQ01–RQ12 | malformed | 400 | 400 | HELD |
+| ID | Family | Status | Guess | Score | Verdict |
+|---|---|---:|---|---:|---|
+| EV01 | evasion | 200 | human | 0.340 | BROKE |
+| EV02 | evasion | 200 | unsure | 0.479 | BROKE |
+| EV03 | evasion | 200 | unsure | 0.590 | BROKE |
+| EV04 | evasion | 200 | unsure | 0.605 | BROKE |
+| EV05 | evasion | 200 | human | 0.350 | BROKE |
+| EV06 | evasion | 200 | unsure | 0.453 | BROKE |
+| EV07 | evasion | 200 | unsure | 0.630 | BROKE |
+| EV08 | evasion | 200 | human | 0.342 | BROKE |
+| EV09 | evasion | 200 | unsure | 0.609 | BROKE |
+| EV10 | evasion | 200 | ai | 0.869 | HELD |
+| FP01 | false positive | 200 | unsure | 0.579 | HELD |
+| FP02 | false positive | 200 | ai | 0.693 | BROKE |
+| FP03 | false positive | 200 | ai | 0.715 | BROKE |
+| FP04 | false positive | 200 | ai | 0.711 | BROKE |
+| FP05 | false positive | 200 | ai | 0.737 | BROKE |
+| FP06 | false positive | 200 | ai | 0.723 | BROKE |
+| FP07 | false positive | 200 | ai | 0.720 | BROKE |
+| FP08 | false positive | 200 | human | 0.334 | HELD |
+| PI01 | prompt injection | 200 | unsure | 0.420 | HELD |
+| PI02 | prompt injection | 200 | human | 0.257 | HELD |
+| PI03 | prompt injection | 200 | unsure | 0.559 | HELD |
+| PI04 | prompt injection | 200 | unsure | 0.478 | HELD |
+| PI05 | prompt injection | 200 | unsure | 0.521 | HELD |
+| PI06 | prompt injection | 200 | unsure | 0.546 | HELD |
+| MF01 | malformed | 400 | — | — | HELD |
+| MF02 | malformed | 400 | — | — | HELD |
+| MF03 | malformed | 200 | human | 0.218 | HELD |
+| MF04 | malformed | 200 | human | 0.327 | HELD |
+| MF05 | malformed | 400 | — | — | HELD |
+| MF06 | malformed | 400 | — | — | HELD |
+| MF07 | malformed | 200 | ai | 0.939 | BROKE |
+| MF08 | malformed | 400 | — | — | HELD |
+| RQ01 | malformed | 400 | — | — | HELD |
+| RQ02 | malformed | 400 | — | — | HELD |
+| RQ03 | malformed | 400 | — | — | HELD |
+| RQ04 | malformed | 400 | — | — | HELD |
+| RQ05 | malformed | 400 | — | — | HELD |
+| RQ06 | malformed | 400 | — | — | HELD |
+| RQ07 | malformed | 400 | — | — | HELD |
+| RQ08 | malformed | 400 | — | — | HELD |
+| RQ09 | malformed | 400 | — | — | HELD |
+| RQ10 | malformed | 400 | — | — | HELD |
+| RQ11 | malformed | 400 | — | — | HELD |
+| RQ12 | malformed | 400 | — | — | HELD |
+| FL01_01 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_02 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_03 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_04 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_05 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_06 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_07 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_08 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_09 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_10 | flood_same_creator | 200 | human | 0.269 | HELD |
+| FL01_11 | flood_same_creator | 429 | — | — | HELD |
+| FL01_12 | flood_same_creator | 429 | — | — | HELD |
 
-All other attack rows retained the same status, score, and held/broke verdict
-as the before table above. The full after report contains the complete 56-row
-table.
+**Count — before and after:**
+
+| Family | Attacks | Broke before | Broke after |
+|---|---:|---:|---:|
+| evasion | 10 | 9 | 9 |
+| false positive | 8 | 6 | 6 |
+| prompt injection | 6 | 0 | 0 |
+| malformed (MF + RQ) | 20 | 4 | **1** |
+| flood_same_creator | 12 | 0 | 0 |
+| **Total** | **56** | **19** | **16** |
+
+Held went from 37 to 40.
+
+### Criteria Run — After
+
+The after criteria run was produced by `run_eval.py::main` in
+`results/run_2026-11-04_1855_after.md`. Every trial's numbers are identical to
+the before run, so the before and after verdicts compare directly:
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. My own writing flagged as AI | At most 1 of 10 in each trial | 1/10 | 1/10 | 1/10 | MET |
+| 2. Score separation | AI average at least 0.25 above human average | 0.0460 gap | 0.0460 gap | 0.0460 gap | MISSED |
+| 3. Label coverage | All three labels reachable in each run | 2/3 | 2/3 | 2/3 | MISSED |
+| 4. Appeal path | 5/5 valid appeals succeed and are recorded | 5/5 | 5/5 | 5/5 | MET |
+| 5. Bad input | 10/10 invalid requests return 4xx with no decision | 10/10 | 10/10 | 10/10 | MET |
 
 
-**Did it help, and how do I know:** Yes. It removed the only automatic 5xx
-failure and changed three malformed cases into controlled 400 responses. The
-five-criteria after run remained unchanged: Criteria 1, 4, and 5 were MET, and
-Criteria 2 and 3 were MISSED. The cost is that submissions shorter than three
-tokens are now rejected even if they are technically non-empty; this is
-necessary because the detector cannot measure them safely.
+**Did it help, and how do I know:** Yes, for what it targeted, and only that.
+Broken attacks went from 19 to 16. The only 5xx in the attack set is gone,
+MF02 now leaves a `text_too_short` entry in the audit log instead of no trace,
+and two false accusations (MF05, MF06) became honest 400s. The criteria run is
+unchanged in every trial. That is expected, because no criterion input is
+under three words, and it confirms the fix did not move any score. It did
+nothing for Criteria 2 and 3 or for the evasion and false-positive attacks,
+which are signal problems, not route problems.
+
+**What it cost:** any submission under three words is now refused, even a
+genuine one. MF05 shows the sharper edge: a single long word was *scorable*
+before (it returned a 200), and now it is refused. The whitespace count is a
+stand-in for "the model has enough to read," and it is stricter than the
+model needs. It also does not protect MF07: right-to-left text with spaces
+passes the check and is still accused at `0.939`.
 
 <!-- Widening the unsure band usually fixes one problem and creates another.
      Reporting that trade honestly is worth full credit. -->
@@ -906,20 +1086,79 @@ necessary because the detector cannot measure them safely.
 <!-- For each attack still getting through and each criterion still missed:
      what you'd do, and why you stopped. -->
 
-The remaining evasion attacks, the six false-positive attacks, and the first
-ten requests in the flood sequence still produce the same outcomes. Criterion
-2 still misses because the AI/human average score gap is only `0.0460` instead
-of `0.25`, and Criterion 3 still misses because no input reached the
-high-confidence-human band. I stopped after the short-input fix so the
-before/after comparison would isolate one diagnosed change; the next possible
-change would need to address signal separation or the label thresholds.
+The 16 attacks still breaking, and the two missed criteria, come down to four
+problems. They are ordered by harm, and each has what I would do next.
+
+1. **False accusations: FP02–FP07, MF07, and Criterion 1's flagged lab
+   paragraph.** Stage: signal one, with signal two failing to offset it (for
+   MF07, the route lets unmeasurable text reach both signals). *Next:* the Criterion 2 table shows signal two
+   pointing the wrong way on my writing, so I would first fix two things in
+   `stylometry.py`. A single sentence should be "can't measure," not "most
+   AI." And text with no `[a-z0-9']` words should be refused at the route
+   rather than scored. I would also lower `WEIGHT_STYLE_SIGNAL` until those
+   are fixed. *Measured prediction:* with the style weight at 0, the
+   Criterion 2 gap would equal signal one's `0.1331`, which is still a miss
+   but three times better. Criterion 1 would also improve, because none of my
+   ten paragraphs has a model score above `0.65`. But FP02–FP07 would become
+   more confident accusations, because all six have model scores above
+   `0.65`. That is exactly the trade below, so it has to
+   be measured, not assumed.
+2. **Evasion: EV01–EV09.** Stages: signal one (EV01, EV07, EV08), signal two
+   (EV02, EV03, EV06, EV09), both (EV05), and the label mapping (EV04). Simple
+   edits move either signal, and a weighted average follows whichever moved.
+   *Next:* nothing that would make false positives worse. On this service I
+   would rather miss these than catch them by lowering the AI threshold.
+3. **Criterion 3, no human label.** Its main cause is the single-sentence rule
+   in item 1, so it would be re-measured after that fix rather than handled
+   separately.
+4. **Rate limit is per `creator_id`, and creator ids are free.** Stage: the
+   route. Apart from the 12 FL01 flood rows, every staff attack used its own
+   creator id, so none of the other 44 came near a limit. *Next:* add a
+   per-address limit alongside the per-creator one, so that changing ids
+   still runs into a ceiling.
+
+Two smaller route gaps I found while diagnosing:
+
+- `submit` still does not catch exceptions from the signals. The short-input
+  check closes the one `ValueError` the attack set reached, but a
+  `DetectorUnavailable` or any future exception would still be a bare 500
+  with no audit entry.
+- Rejected entries do not carry all nine audit fields. `content_id`, the
+  scores and the label are absent rather than `null`, because no decision
+  was made.
+
+**Why I stopped:** the unit allows one improvement so that before and after
+compare directly. I picked the one whose mechanism I was surest of and whose
+fix could not move any score. Items 1–3 are scoring changes, and each one
+trades false positives against missed AI text, so each would need its own
+full before/after run.
+
+**Feedback from unit 7 I deliberately did not act on this unit:**
+
+- the redundant `isinstance` check after `get_json(...) or {}` in `submit`
+- the duplicated "original decision" lookup in `appeal` and `get_content`,
+  which belongs in a helper in `audit.py`
+- moving the `0.45/0.35/0.20` style weights and the `0.20` punctuation cap
+  into `config.py`
+
+None of these changes behavior, and the unit asks for no side changes between
+the before and after runs, so I left them for after submission. The third
+matters more now than it did: the `0.20` cap is why punctuation density adds
+the same ~0.18 to every text in the Criterion 2 diagnosis, and item 1's fix
+would be a config edit instead of a code edit if it lived in `config.py`. The
+fourth piece of feedback, making calibration repeatable, I did act on: my own
+writing and my comparison texts now live in `scenarios.py` and are re-run by
+`run_eval.py`.
 
 
 
 **The trade I'd make if this ran for real:**
 
-<!-- Two sentences. Fewer wrong accusations means more AI text getting through.
-     Say which way you'd go and WHO PAYS FOR IT. -->
+I would prefer a wider unsure band and fewer high-confidence accusations, even
+if more AI-written text passes through undetected. The people who pay for that
+are readers, and honest writers whose work sits beside AI text the service
+let through unlabeled. The alternative makes individual real writers pay
+through public false accusations, like FP03, which is the more serious harm.
 
 
 
