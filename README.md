@@ -1435,6 +1435,30 @@ fix.
        [ ] The SAME repository URL as last unit
 
      Do not delete and recreate this repository.
+
+---
+
+# Unit 9 — The Capstone
+
+## What This Extends
+
+This unit extends the existing **Provenance Guard** service from Units 7 and 8. The original system accepts text through `POST /submit`, combines the detector and stylometry signals, assigns a label, records decisions in the audit log, supports appeals, and handles rate-limited or invalid requests.
+
+The new work will add one bounded failure-handling layer around request processing: when scoring cannot complete normally because the detector is unavailable or raises an unexpected scoring error, the service will return a safe client-visible error and record the failure as structured operational evidence. The new records will include enough visibility to connect a request to its outcome, duration, processing stage, and failure reason without creating a misleading `decided` audit entry.
+
+## The Shape
+
+**Shape B — Harden against failure.**
+
+The extension is the safe, observable failure path for detector/scoring failures. A normal request must continue to produce the existing response and audit decision. A deliberately triggered failure must return a documented error response, leave no false decision, and produce a structured failure record that can be inspected after the service has run.
+
+The visibility work is supporting instrumentation for this failure path: it will make the failure observable after the fact, not become a separate dashboard or product feature.
+
+### Out of scope
+
+This unit will not retrain or recalibrate the detector, redesign the scoring model, add a new user-facing endpoint or dashboard, change the existing appeal workflow, or deploy the local model to a hosted service. It will also not change the existing rate-limit policy except where needed to preserve and test its current behavior.
+
+The first implementation step is to define the five Unit 9 acceptance criteria in `criteria.md` before changing feature code.
      ═════════════════════════════════════════════════════════════════════ -->
 
 ---
