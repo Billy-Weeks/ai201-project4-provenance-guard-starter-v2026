@@ -25,6 +25,7 @@ Routes:
     GET  /health      is the service up, and is the model loaded
 """
 
+import time
 import uuid
 
 from flask import Flask, jsonify, request
@@ -32,6 +33,7 @@ from flask import Flask, jsonify, request
 import audit
 import config
 import detector
+import operations
 import scoring
 import stylometry
 
@@ -203,6 +205,8 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
+    started = time.perf_counter()
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     payload = request.get_json(silent=True) or {}
 
     if not isinstance(payload, dict):
@@ -254,11 +258,52 @@ def submit():
         }), 400
 
     content_id = str(uuid.uuid4())
-    model_score = detector.model_signal(text)
-    style_score = stylometry.style_signal(text)
-    confidence = scoring.combine_signals(model_score, style_score)
+    input_summary = {
+        "creator_id": creator_id,
+        "text_chars": len(text),
+        "text_tokens": len(text.split()),
+    }
 
-    guess, label = scoring.score_to_label(confidence)
+    try:
+        model_score = detector.model_signal(text)
+        style_score = stylometry.style_signal(text)
+        confidence = scoring.combine_signals(model_score, style_score)
+        guess, label = scoring.score_to_label(confidence)
+    except detector.DetectorUnavailable:
+        duration_ms = (time.perf_counter() - started) * 1000
+        operations.log_event(
+            request_id=request_id,
+            event="scoring_failed",
+            stage="detector",
+            status_code=503,
+            duration_ms=duration_ms,
+            input_summary=input_summary,
+            output_summary={"error": "detector_unavailable"},
+            error_type="DetectorUnavailable",
+        )
+        return jsonify({
+            "error": "detector_unavailable",
+            "message": "The detector is temporarily unavailable. Try again later.",
+            "request_id": request_id,
+        }), 503
+    except Exception as exc:  # noqa: BLE001
+        duration_ms = (time.perf_counter() - started) * 1000
+        operations.log_event(
+            request_id=request_id,
+            event="scoring_failed",
+            stage="scoring",
+            status_code=503,
+            duration_ms=duration_ms,
+            input_summary=input_summary,
+            output_summary={"error": "scoring_unavailable"},
+            error_type=type(exc).__name__,
+        )
+        return jsonify({
+            "error": "scoring_unavailable",
+            "message": "The submission could not be scored. Try again later.",
+            "request_id": request_id,
+        }), 503
+
     audit.log_decision(
         content_id=content_id,
         creator_id=creator_id,
@@ -270,8 +315,23 @@ def submit():
         status="decided",
     )
 
+    operations.log_event(
+        request_id=request_id,
+        event="submission_completed",
+        stage="completed",
+        status_code=200,
+        duration_ms=(time.perf_counter() - started) * 1000,
+        input_summary=input_summary,
+        output_summary={
+            "content_id": content_id,
+            "guess": guess,
+            "status": "decided",
+        },
+    )
+
     return jsonify({
         "content_id": content_id,
+        "request_id": request_id,
         "guess": guess,
         "confidence": confidence,
         "label": label,
