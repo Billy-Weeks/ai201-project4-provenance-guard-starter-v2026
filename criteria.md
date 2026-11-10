@@ -89,6 +89,43 @@ For 10 checks—five requests with missing or empty `text` and five requests who
 **Why this target:** Invalid input should fail clearly at the boundary rather than crash the detector or create a misleading decision. Rejecting oversized text also protects the local model from unnecessary work and keeps the service's resource limits observable.
 
 
+---
+
+# Unit 9 — The Capstone
+
+These criteria are for the Shape B extension declared in the Unit 9 section of `README.md`. They were written before Unit 9 feature implementation or result collection. The extension is a safe, observable failure path around detector/scoring failures.
+
+## 1. Safe response when detector scoring fails
+
+Across 5 out of 5 deliberately forced detector failures, `POST /submit` must return a JSON `503` response containing a stable error code, and the response must not contain `guess`, `confidence`, or `label` fields.
+
+**Why this target:** A detector that cannot score should produce a predictable service-level failure rather than a misleading classification. Five trials make the behavior repeatable while keeping the failure test small enough to run locally.
+
+## 2. Failed requests do not create false decisions
+
+Across 5 out of 5 deliberately forced detector failures, the request must create no `decided` audit entry and must not appear as a successful classification in the audit history.
+
+**Why this target:** Recording a decision when the detector failed would falsely claim that Provenance Guard evaluated the text. Zero false decisions is necessary because an incorrect provenance record is more damaging than an explicit temporary failure.
+
+## 3. Failure visibility is complete
+
+Across 5 out of 5 deliberately forced detector failures, the operational log must contain a timestamp, request ID, processing stage, error type, response status, and non-negative duration for the failed request.
+
+**Why this target:** The purpose of the visibility addition is to make a failure diagnosable after the request is over. These fields identify when the failure happened, which request and stage caused it, what response was returned, and how long the failure path took.
+
+## 4. Normal submissions do not regress
+
+Across 9 out of 10 normal submissions after the extension, the service must return HTTP 200 with `content_id`, `guess`, `confidence`, `label`, `model_score`, and `style_score`, and must record one `decided` audit entry.
+
+**Why this target:** The extension must preserve the system it extends. A 9-of-10 target allows for one realistic local-model or environment failure while requiring the normal request path to remain usable and fully populated.
+
+## 5. Timing is recorded on both paths
+
+Across 10 test requests—5 successful submissions and 5 deliberately forced detector failures—the operational log must contain a non-negative total duration in milliseconds for every request.
+
+**Why this target:** Timing is needed to understand the operational cost of both success and failure. Requiring both paths prevents instrumentation from working only for normal decisions while leaving failures invisible.
+
+
 
 ---
 
