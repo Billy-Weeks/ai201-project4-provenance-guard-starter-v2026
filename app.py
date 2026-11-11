@@ -264,12 +264,28 @@ def submit():
         "text_tokens": len(text.split()),
     }
 
+    stage_durations_ms = {}
+    current_stage = "detector"
+    stage_started = time.perf_counter()
     try:
         model_score = detector.model_signal(text)
+        stage_durations_ms["detector"] = (time.perf_counter() - stage_started) * 1000
+
+        current_stage = "stylometry"
+        stage_started = time.perf_counter()
         style_score = stylometry.style_signal(text)
+        stage_durations_ms["stylometry"] = (time.perf_counter() - stage_started) * 1000
+
+        current_stage = "scoring"
+        stage_started = time.perf_counter()
         confidence = scoring.combine_signals(model_score, style_score)
         guess, label = scoring.score_to_label(confidence)
+        stage_durations_ms["scoring"] = (time.perf_counter() - stage_started) * 1000
     except detector.DetectorUnavailable:
+        stage_durations_ms.setdefault(
+            current_stage,
+            (time.perf_counter() - stage_started) * 1000,
+        )
         duration_ms = (time.perf_counter() - started) * 1000
         operations.log_event(
             request_id=request_id,
@@ -280,6 +296,7 @@ def submit():
             input_summary=input_summary,
             output_summary={"error": "detector_unavailable"},
             error_type="DetectorUnavailable",
+            stage_durations_ms=stage_durations_ms,
         )
         return jsonify({
             "error": "detector_unavailable",
@@ -287,6 +304,10 @@ def submit():
             "request_id": request_id,
         }), 503
     except Exception as exc:  # noqa: BLE001
+        stage_durations_ms.setdefault(
+            current_stage,
+            (time.perf_counter() - stage_started) * 1000,
+        )
         duration_ms = (time.perf_counter() - started) * 1000
         operations.log_event(
             request_id=request_id,
@@ -297,6 +318,7 @@ def submit():
             input_summary=input_summary,
             output_summary={"error": "scoring_unavailable"},
             error_type=type(exc).__name__,
+            stage_durations_ms=stage_durations_ms,
         )
         return jsonify({
             "error": "scoring_unavailable",
@@ -327,6 +349,7 @@ def submit():
             "guess": guess,
             "status": "decided",
         },
+        stage_durations_ms=stage_durations_ms,
     )
 
     return jsonify({

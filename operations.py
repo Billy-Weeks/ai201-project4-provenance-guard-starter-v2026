@@ -29,6 +29,7 @@ def log_event(
     input_summary: dict,
     output_summary: dict,
     error_type: str | None = None,
+    stage_durations_ms: dict | None = None,
 ) -> dict:
     """Append one request event with stable, inspectable fields."""
     entry = {
@@ -41,6 +42,7 @@ def log_event(
         "input": input_summary,
         "output": output_summary,
         "error_type": error_type,
+        "stage_durations_ms": stage_durations_ms or {},
     }
 
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
