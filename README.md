@@ -1494,15 +1494,32 @@ The first request is not representative of a warm process: it took about 231 sec
 
 ### Run log — before and after
 
-The full generated reports are `results/unit9_before.md` and `results/unit9_after.md`.
+The full generated reports are results/unit9_before.md, results/unit9_before-2.md, results/unit9_before-3.md, results/unit9_after.md, results/unit9_after-2.md, and results/unit9_after-3.md.
 
-| Criterion | Target | Before | After | Verdict after |
-|---|---:|---:|---:|---|
-| 1. Safe detector-failure response | 5/5 | 5/5 | 5/5 | MET |
-| 2. No false decisions on detector failure | 5/5 | 5/5 | 5/5 | MET |
-| 3. Complete failure visibility | 5/5 | 5/5 | 5/5 | MET |
-| 4. Normal submissions remain valid | 9/10 | 10/10 | 10/10 | MET |
-| 5. Timing on both paths | 10/10 | 10/10 | 10/10 | MET |
+| Criterion | Target | Before 1 | Before 2 | Before 3 | After 1 | After 2 | After 3 | Verdict |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| 1. Safe detector-failure response | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. No false decisions on detector failure | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Complete failure visibility | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Normal submissions remain valid | 9/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
+| 5. Timing on both paths | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
+
+### Ten-entry operational log extract
+
+These are ten actual entries from logs/operations.jsonl produced by run_unit9.py::run:
+
+```json
+{"timestamp":"2026-11-11T23:03:04.881+00:00","request_id":"unit9-after-3-normal-1","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":157665.862,"input":{"creator_id":"unit9-normal-after-3-1","text_chars":70,"text_tokens":9},"output":{"content_id":"243f7c00-a849-4535-ac3d-974075a12b23","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":157659.52159000153,"stylometry":0.43989400001009926,"scoring":0.016747006156947464}}
+{"timestamp":"2026-11-11T23:03:04.995+00:00","request_id":"unit9-after-3-normal-2","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":105.152,"input":{"creator_id":"unit9-normal-after-3-2","text_chars":70,"text_tokens":9},"output":{"content_id":"58a85e68-656d-4995-88e1-c20e986a86ef","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":99.72528599610087,"stylometry":0.06462400051532313,"scoring":0.006740003300365061}}
+{"timestamp":"2026-11-11T23:03:05.152+00:00","request_id":"unit9-after-3-normal-3","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":149.819,"input":{"creator_id":"unit9-normal-after-3-3","text_chars":66,"text_tokens":11},"output":{"content_id":"ec919c4a-0c17-4d42-ab89-86534928e03e","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":142.3532039989368,"stylometry":0.10210100299445912,"scoring":0.008741000783629715}}
+{"timestamp":"2026-11-11T23:03:05.301+00:00","request_id":"unit9-after-3-normal-4","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":139.989,"input":{"creator_id":"unit9-normal-after-3-4","text_chars":66,"text_tokens":10},"output":{"content_id":"756f98f9-d5b8-4a16-a1d7-a54b7d067e59","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":131.21359499928076,"stylometry":0.08685499778948724,"scoring":0.012604999938048422}}
+{"timestamp":"2026-11-11T23:03:05.447+00:00","request_id":"unit9-after-3-normal-5","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":136.937,"input":{"creator_id":"unit9-normal-after-3-5","text_chars":69,"text_tokens":11},"output":{"content_id":"fc51fa74-822b-447f-8758-a4023f25d361","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":128.76296800095588,"stylometry":0.08568399789510295,"scoring":0.00776100205257535}}
+{"timestamp":"2026-11-11T23:03:05.578+00:00","request_id":"unit9-after-3-normal-6","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":122.019,"input":{"creator_id":"unit9-normal-after-3-6","text_chars":65,"text_tokens":10},"output":{"content_id":"50640223-e047-4109-b983-bf402d44a6cd","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":114.46481699385913,"stylometry":0.08977200195658952,"scoring":0.007579998055007309}}
+{"timestamp":"2026-11-11T23:03:05.779+00:00","request_id":"unit9-after-3-normal-7","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":191.322,"input":{"creator_id":"unit9-normal-after-3-7","text_chars":67,"text_tokens":9},"output":{"content_id":"65a5e34a-3e30-4078-ba3f-e09937ac0158","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":182.34386899712263,"stylometry":0.10891399870160967,"scoring":0.011572999937925488}}
+{"timestamp":"2026-11-11T23:03:05.921+00:00","request_id":"unit9-after-3-normal-8","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":132.817,"input":{"creator_id":"unit9-normal-after-3-8","text_chars":60,"text_tokens":10},"output":{"content_id":"fe8cb107-4291-49cb-8383-b6d262e79244","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":123.6238109995611,"stylometry":0.09151799895334989,"scoring":0.008591996447648853}}
+{"timestamp":"2026-11-11T23:03:06.065+00:00","request_id":"unit9-after-3-normal-9","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":135.393,"input":{"creator_id":"unit9-normal-after-3-9","text_chars":67,"text_tokens":10},"output":{"content_id":"551afddf-a492-4c3f-84b0-477116199e5c","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":124.30226700234925,"stylometry":0.1046030010911636,"scoring":0.009155999578069896}}
+{"timestamp":"2026-11-11T23:03:06.218+00:00","request_id":"unit9-after-3-normal-10","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":142.297,"input":{"creator_id":"unit9-normal-after-3-10","text_chars":69,"text_tokens":10},"output":{"content_id":"208bceb7-b5b6-4e27-8c80-610fd72b27d9","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":135.1413450029213,"stylometry":0.09970500104827806,"scoring":0.008390001312363893}}
+```
 
 ### Real output evidence
 
@@ -1574,7 +1591,6 @@ The main remaining operational weakness is cold-start latency. The after run mea
 The generic unexpected-scoring-error branch is implemented but was not used as one of the five forced-failure trials; the tested failure path used the detector's real `DetectorUnavailable` exception. Given another unit, I would first add a second deliberate failure scenario for an unexpected stylometry or scoring exception, because that would verify the other branch without changing the normal detector behavior.
 
 If this were a production service, I would next move model loading into an explicitly warmed worker and add log rotation or durable centralized storage. Those changes come after the failure behavior because the current evidence shows that the detector's cold start is the dominant operational cost.
-     ═════════════════════════════════════════════════════════════════════ -->
 
 ---
 
