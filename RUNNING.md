@@ -234,6 +234,65 @@ your write-up; that's the deliverable.
 
 ---
 
+## Unit 9 run path — Path B, local with logs
+
+This is the run path used for the Unit 9 capstone. It is local because the
+model does not fit a 512 MB free host (arithmetic above).
+
+### Environment
+
+| Item | Value |
+|---|---|
+| OS / shell | WSL Ubuntu on Windows 11 (bash). The `.venv` is a Linux venv (`.venv/bin`), so run from WSL, not PowerShell |
+| Python | **3.12.3** |
+| Dependencies | `requirements.txt` (version ranges); exact versions that ran are pinned in [`requirements-lock.txt`](requirements-lock.txt) (`pip freeze` of the venv) |
+| Model | `gpt2`, downloaded by `python detector.py` into `~/.cache/huggingface/hub/models--gpt2` — **526 MB** on disk |
+| API keys / env vars | None. No hosted service is called. `HOST`/`PORT` defaults are fine |
+
+### From a clean checkout
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-lock.txt   # or requirements.txt for the version ranges
+python test.py                          # environment check
+python detector.py                      # one-time ~550 MB model download
+```
+
+### The start command
+
+```bash
+python run_unit9.py --label <label>
+```
+
+This one command runs the whole Unit 9 criteria set in-process against the
+real `/submit` route (`app.py::submit`): 10 normal submissions using the real
+local detector, then 5 submissions with the detector's `DetectorUnavailable`
+exception injected at the detector boundary. It does not need `python app.py`
+running in another terminal.
+
+Expect the first normal submission to take roughly 100–230 seconds on this
+laptop while the model loads; later submissions take about 100–200 ms.
+
+To run the service itself for manual requests instead: `python app.py`, then
+`curl` as shown in *Your first five minutes*.
+
+### What it writes
+
+| Output | Contents |
+|---|---|
+| `results/unit9_<label>.md` | Criteria table, every response body, the run's operational entries, audit summary |
+| `logs/operations.jsonl` | One structured record per request: `timestamp`, `request_id`, `event`, `stage`, `status_code`, `duration_ms`, `input`, `output`, `error_type`, `stage_durations_ms` |
+| `logs/audit.jsonl` | One `decided` entry per successful classification (none for failures) |
+
+### Committed run records
+
+- `results/unit9_before.md`, `unit9_before-2.md`, `unit9_before-3.md`, `unit9_after.md`, `unit9_after-2.md`, `unit9_after-3.md`
+- `logs/operations.jsonl` and `logs/audit.jsonl`: before run 1 and all three after runs
+- `logs/operations_unit9_before_worktree.jsonl` and `logs/audit_unit9_before_worktree.jsonl`: before runs 2 and 3. These were run from a git worktree checked out at commit `12d390d` (the commit before the stage-timing change), so their log lines were written in that worktree and copied here
+
+---
+
 ## Where everything lives
 
 | File | What it does |

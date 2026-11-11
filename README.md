@@ -1446,7 +1446,7 @@ fix.
 
 This unit extends the existing **Provenance Guard** service from Units 7 and 8. The original system accepts text through `POST /submit`, combines the detector and stylometry signals, assigns a label, records decisions in the audit log, supports appeals, and handles rate-limited or invalid requests.
 
-The new work will add one bounded failure-handling layer around request processing: when scoring cannot complete normally because the detector is unavailable or raises an unexpected scoring error, the service will return a safe client-visible error and record the failure as structured operational evidence. The new records will include enough visibility to connect a request to its outcome, duration, processing stage, and failure reason without creating a misleading `decided` audit entry.
+The new work adds one bounded failure-handling layer around request processing in `app.py::submit`: when scoring cannot complete because the detector is unavailable (`DetectorUnavailable`) or a scoring stage raises an unexpected error, the service returns a safe `503` JSON error with no `guess`, `confidence`, or `label`, writes no `decided` audit entry, and records the failure in a new structured operational log (`operations.py::log_event` → `logs/operations.jsonl`). Each record connects a request ID to its outcome, duration, processing stage, and failure reason.
 
 ## The Shape
 
@@ -1454,34 +1454,51 @@ The new work will add one bounded failure-handling layer around request processi
 
 The extension is the safe, observable failure path for detector/scoring failures. A normal request must continue to produce the existing response and audit decision. A deliberately triggered failure must return a documented error response, leave no false decision, and produce a structured failure record that can be inspected after the service has run.
 
-The visibility work is supporting instrumentation for this failure path: it will make the failure observable after the fact, not become a separate dashboard or product feature.
+The visibility work is supporting instrumentation for this failure path: it makes the failure observable after the fact, not a separate dashboard or product feature.
 
 ### Out of scope
 
-This unit will not retrain or recalibrate the detector, redesign the scoring model, add a new user-facing endpoint or dashboard, change the existing appeal workflow, or deploy the local model to a hosted service. It will also not change the existing rate-limit policy except where needed to preserve and test its current behavior.
-
-The first implementation step is to define the five Unit 9 acceptance criteria in `criteria.md` before changing feature code.
+This unit does not retrain or recalibrate the detector, redesign the scoring model, add a new user-facing endpoint or dashboard, change the existing appeal workflow, or deploy the local model to a hosted service. It also does not change the existing rate-limit policy.
 
 ## Running It
 
-Unit 9 uses the local-with-logs path documented in [RUNNING.md](RUNNING.md). The evaluation runner was run from the activated Python environment with:
+Unit 9 uses **Path B — local with logs**. The full environment (Python 3.12.3, pinned dependencies in `requirements-lock.txt`, the 526 MB `gpt2` model) and clean-checkout setup are in the *Unit 9 run path* section of [RUNNING.md](RUNNING.md). From the activated WSL environment, one command runs all five criteria and writes the run record:
 
 ```bash
-python run_unit9.py --label before
-python run_unit9.py --label after
+python run_unit9.py --label before   # run before the improvement
+python run_unit9.py --label after    # run after the improvement
 ```
 
-The normal trials use the real local detector. The failure trials inject the detector's existing `DetectorUnavailable` exception at the detector boundary; this tests the production error path without adding a public test switch to the service.
+Each run sends 10 normal submissions through the real `/submit` route with the real local detector, then 5 submissions with the detector's existing `DetectorUnavailable` exception injected at the detector boundary (`unittest.mock.patch` on `detector.model_signal`). This tests the production error path without adding a public test switch to the service. The run writes `results/unit9_<label>.md`, and the route writes `logs/operations.jsonl` and `logs/audit.jsonl`.
+
+**How the three before runs were produced.** Before run 1 was run and committed before the improvement (`12d390d`, "Record unit 9 before results"). I only ran before once at that point, so after committing the improvement I created a separate git worktree checked out at `12d390d` (the commit immediately before the stage-timing change in `b25cdec`) and ran `python run_unit9.py --label before-2` and `--label before-3` there. Those reports were copied into `results/`, and their log lines are committed as `logs/operations_unit9_before_worktree.jsonl` and `logs/audit_unit9_before_worktree.jsonl`. You can confirm they ran on the pre-improvement code: their operational entries have no `stage_durations_ms` field.
 
 ## Instrumentation
 
-The existing `logs/audit.jsonl` records classification decisions. Unit 9 adds `logs/operations.jsonl`, which records request ID, event, stage, response status, duration, input summary, output summary, error type, and—after the improvement—per-stage durations.
+The existing `logs/audit.jsonl` records classification decisions. Unit 9 adds `logs/operations.jsonl`, written by `operations.py::log_event` from `app.py::submit` for every scored request, successful or failed. Each record has `timestamp`, `request_id`, `event`, `stage`, `status_code`, `duration_ms`, `input` (creator ID, character and token count), `output` (content ID and guess, or the error code), `error_type`, and, after the improvement, `stage_durations_ms`.
 
-The first run produced 10 normal `200` responses and 5 forced `503` responses. The second run produced the same behavior, showing that the instrumentation change did not regress the service.
+All six runs (three before, three after) produced the same behavior: 10 normal `200` responses and 5 forced `503` responses each, 90 requests in total, all logged.
+
+### Ten-entry operational log extract
+
+These are ten unedited entries from `logs/operations.jsonl`, from after run 3 (`python run_unit9.py --label after-3`). The first seven are normal submissions; the last three are forced detector failures that returned `503` and wrote no decision:
+
+```json
+{"timestamp": "2026-11-11T23:03:04.881+00:00", "request_id": "unit9-after-3-normal-1", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 157665.862, "input": {"creator_id": "unit9-normal-after-3-1", "text_chars": 70, "text_tokens": 9}, "output": {"content_id": "243f7c00-a849-4535-ac3d-974075a12b23", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 157659.52159000153, "stylometry": 0.43989400001009926, "scoring": 0.016747006156947464}}
+{"timestamp": "2026-11-11T23:03:04.995+00:00", "request_id": "unit9-after-3-normal-2", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 105.152, "input": {"creator_id": "unit9-normal-after-3-2", "text_chars": 70, "text_tokens": 9}, "output": {"content_id": "58a85e68-656d-4995-88e1-c20e986a86ef", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 99.72528599610087, "stylometry": 0.06462400051532313, "scoring": 0.006740003300365061}}
+{"timestamp": "2026-11-11T23:03:05.152+00:00", "request_id": "unit9-after-3-normal-3", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 149.819, "input": {"creator_id": "unit9-normal-after-3-3", "text_chars": 66, "text_tokens": 11}, "output": {"content_id": "ec919c4a-0c17-4d42-ab89-86534928e03e", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 142.3532039989368, "stylometry": 0.10210100299445912, "scoring": 0.008741000783629715}}
+{"timestamp": "2026-11-11T23:03:05.301+00:00", "request_id": "unit9-after-3-normal-4", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 139.989, "input": {"creator_id": "unit9-normal-after-3-4", "text_chars": 66, "text_tokens": 10}, "output": {"content_id": "756f98f9-d5b8-4a16-a1d7-a54b7d067e59", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 131.21359499928076, "stylometry": 0.08685499778948724, "scoring": 0.012604999938048422}}
+{"timestamp": "2026-11-11T23:03:05.447+00:00", "request_id": "unit9-after-3-normal-5", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 136.937, "input": {"creator_id": "unit9-normal-after-3-5", "text_chars": 69, "text_tokens": 11}, "output": {"content_id": "fc51fa74-822b-447f-8758-a4023f25d361", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 128.76296800095588, "stylometry": 0.08568399789510295, "scoring": 0.00776100205257535}}
+{"timestamp": "2026-11-11T23:03:05.578+00:00", "request_id": "unit9-after-3-normal-6", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 122.019, "input": {"creator_id": "unit9-normal-after-3-6", "text_chars": 65, "text_tokens": 10}, "output": {"content_id": "50640223-e047-4109-b983-bf402d44a6cd", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 114.46481699385913, "stylometry": 0.08977200195658952, "scoring": 0.007579998055007309}}
+{"timestamp": "2026-11-11T23:03:05.779+00:00", "request_id": "unit9-after-3-normal-7", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 191.322, "input": {"creator_id": "unit9-normal-after-3-7", "text_chars": 67, "text_tokens": 9}, "output": {"content_id": "65a5e34a-3e30-4078-ba3f-e09937ac0158", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 182.34386899712263, "stylometry": 0.10891399870160967, "scoring": 0.011572999937925488}}
+{"timestamp": "2026-11-11T23:03:06.228+00:00", "request_id": "unit9-after-3-failure-1", "event": "scoring_failed", "stage": "detector", "status_code": 503, "duration_ms": 0.108, "input": {"creator_id": "unit9-failure-after-3-1", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "error_type": "DetectorUnavailable", "stage_durations_ms": {"detector": 0.05324299854692072}}
+{"timestamp": "2026-11-11T23:03:06.238+00:00", "request_id": "unit9-after-3-failure-2", "event": "scoring_failed", "stage": "detector", "status_code": 503, "duration_ms": 0.079, "input": {"creator_id": "unit9-failure-after-3-2", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "error_type": "DetectorUnavailable", "stage_durations_ms": {"detector": 0.04340599843999371}}
+{"timestamp": "2026-11-11T23:03:06.248+00:00", "request_id": "unit9-after-3-failure-3", "event": "scoring_failed", "stage": "detector", "status_code": 503, "duration_ms": 0.068, "input": {"creator_id": "unit9-failure-after-3-3", "text_chars": 66, "text_tokens": 11}, "output": {"error": "detector_unavailable"}, "error_type": "DetectorUnavailable", "stage_durations_ms": {"detector": 0.03660299989860505}}
+```
 
 ## What It Costs
 
-I measured cost as local compute time because this Path B system uses a model on my own machine and does not make a paid API call. The after run recorded the `duration_ms` field for ten normal submissions in `logs/operations.jsonl`. Their mean was `23,230.8763 ms`, or approximately `23.231 seconds` of compute per normal submission, including the cold model-load request.
+I measured cost as local compute time because this Path B system uses a model on my own machine and does not make a paid API call. After run 1 recorded the `duration_ms` field for ten normal submissions in `logs/operations.jsonl`. Their mean was `23,230.9 ms`, or approximately `23.231 seconds` of compute per normal submission, including the cold model-load request.
 
 For 100 normal submissions per day:
 
@@ -1494,7 +1511,7 @@ The first request is not representative of a warm process: it took about 231 sec
 
 ### Run log — before and after
 
-The full generated reports are results/unit9_before.md, results/unit9_before-2.md, results/unit9_before-3.md, results/unit9_after.md, results/unit9_after-2.md, and results/unit9_after-3.md.
+The full generated reports are `results/unit9_before.md`, `results/unit9_before-2.md`, `results/unit9_before-3.md`, `results/unit9_after.md`, `results/unit9_after-2.md`, and `results/unit9_after-3.md`. Each cell is one full run of `run_unit9.py::run`.
 
 | Criterion | Target | Before 1 | Before 2 | Before 3 | After 1 | After 2 | After 3 | Verdict |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
@@ -1504,69 +1521,69 @@ The full generated reports are results/unit9_before.md, results/unit9_before-2.m
 | 4. Normal submissions remain valid | 9/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
 | 5. Timing on both paths | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
 
-### Ten-entry operational log extract
-
-These are ten actual entries from logs/operations.jsonl produced by run_unit9.py::run:
-
-```json
-{"timestamp":"2026-11-11T23:03:04.881+00:00","request_id":"unit9-after-3-normal-1","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":157665.862,"input":{"creator_id":"unit9-normal-after-3-1","text_chars":70,"text_tokens":9},"output":{"content_id":"243f7c00-a849-4535-ac3d-974075a12b23","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":157659.52159000153,"stylometry":0.43989400001009926,"scoring":0.016747006156947464}}
-{"timestamp":"2026-11-11T23:03:04.995+00:00","request_id":"unit9-after-3-normal-2","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":105.152,"input":{"creator_id":"unit9-normal-after-3-2","text_chars":70,"text_tokens":9},"output":{"content_id":"58a85e68-656d-4995-88e1-c20e986a86ef","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":99.72528599610087,"stylometry":0.06462400051532313,"scoring":0.006740003300365061}}
-{"timestamp":"2026-11-11T23:03:05.152+00:00","request_id":"unit9-after-3-normal-3","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":149.819,"input":{"creator_id":"unit9-normal-after-3-3","text_chars":66,"text_tokens":11},"output":{"content_id":"ec919c4a-0c17-4d42-ab89-86534928e03e","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":142.3532039989368,"stylometry":0.10210100299445912,"scoring":0.008741000783629715}}
-{"timestamp":"2026-11-11T23:03:05.301+00:00","request_id":"unit9-after-3-normal-4","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":139.989,"input":{"creator_id":"unit9-normal-after-3-4","text_chars":66,"text_tokens":10},"output":{"content_id":"756f98f9-d5b8-4a16-a1d7-a54b7d067e59","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":131.21359499928076,"stylometry":0.08685499778948724,"scoring":0.012604999938048422}}
-{"timestamp":"2026-11-11T23:03:05.447+00:00","request_id":"unit9-after-3-normal-5","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":136.937,"input":{"creator_id":"unit9-normal-after-3-5","text_chars":69,"text_tokens":11},"output":{"content_id":"fc51fa74-822b-447f-8758-a4023f25d361","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":128.76296800095588,"stylometry":0.08568399789510295,"scoring":0.00776100205257535}}
-{"timestamp":"2026-11-11T23:03:05.578+00:00","request_id":"unit9-after-3-normal-6","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":122.019,"input":{"creator_id":"unit9-normal-after-3-6","text_chars":65,"text_tokens":10},"output":{"content_id":"50640223-e047-4109-b983-bf402d44a6cd","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":114.46481699385913,"stylometry":0.08977200195658952,"scoring":0.007579998055007309}}
-{"timestamp":"2026-11-11T23:03:05.779+00:00","request_id":"unit9-after-3-normal-7","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":191.322,"input":{"creator_id":"unit9-normal-after-3-7","text_chars":67,"text_tokens":9},"output":{"content_id":"65a5e34a-3e30-4078-ba3f-e09937ac0158","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":182.34386899712263,"stylometry":0.10891399870160967,"scoring":0.011572999937925488}}
-{"timestamp":"2026-11-11T23:03:05.921+00:00","request_id":"unit9-after-3-normal-8","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":132.817,"input":{"creator_id":"unit9-normal-after-3-8","text_chars":60,"text_tokens":10},"output":{"content_id":"fe8cb107-4291-49cb-8383-b6d262e79244","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":123.6238109995611,"stylometry":0.09151799895334989,"scoring":0.008591996447648853}}
-{"timestamp":"2026-11-11T23:03:06.065+00:00","request_id":"unit9-after-3-normal-9","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":135.393,"input":{"creator_id":"unit9-normal-after-3-9","text_chars":67,"text_tokens":10},"output":{"content_id":"551afddf-a492-4c3f-84b0-477116199e5c","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":124.30226700234925,"stylometry":0.1046030010911636,"scoring":0.009155999578069896}}
-{"timestamp":"2026-11-11T23:03:06.218+00:00","request_id":"unit9-after-3-normal-10","event":"submission_completed","stage":"completed","status_code":200,"duration_ms":142.297,"input":{"creator_id":"unit9-normal-after-3-10","text_chars":69,"text_tokens":10},"output":{"content_id":"208bceb7-b5b6-4e27-8c80-610fd72b27d9","guess":"human","status":"decided"},"error_type":null,"stage_durations_ms":{"detector":135.1413450029213,"stylometry":0.09970500104827806,"scoring":0.008390001312363893}}
-```
-
 ### Real output evidence
 
-Criterion 1, from `run_unit9.py::run` and `results/unit9_after.md`:
+In every case below, the response or log line is produced by `app.py::submit` (operational records written through `operations.py::log_event`, audit records through `audit.py::log_decision`), and the run that triggered and counted it is `run_unit9.py::run`.
 
-```json
-{"error": "detector_unavailable", "message": "The detector is temporarily unavailable. Try again later.", "request_id": "unit9-after-failure-1"}
-```
-
-Criterion 2, from the same run's audit summary:
+**Criterion 1** — a forced-failure response body, from `results/unit9_after.md` (produced by the `except detector.DetectorUnavailable` branch of `app.py::submit`):
 
 ```text
-New audit entries: 10
-New decided entries: 10
+- Trial 1: `503` `{"error": "detector_unavailable", "message": "The detector is temporarily unavailable. Try again later.", "request_id": "unit9-after-failure-1"}`
 ```
 
-The five forced failure creators produced no `decided` entries; the ten `decided` entries correspond to the ten normal submissions.
-
-Criterion 3, from `logs/operations.jsonl`:
-
-```json
-{"duration_ms": 0.102, "error_type": "DetectorUnavailable", "event": "scoring_failed", "input": {"creator_id": "unit9-failure-after-1", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "request_id": "unit9-after-failure-1", "stage": "detector", "stage_durations_ms": {"detector": 0.059569996665231884}, "status_code": 503}
-```
-
-Criterion 4, from `results/unit9_after.md`:
+**Criterion 2** — the audit summary from `results/unit9_after.md` (audit entries written by `audit.py::log_decision`, counted by `run_unit9.py::run`):
 
 ```text
-Trial 1: 200 {"confidence": 0.138, "content_id": "145c832a-b464-4c90-bd0a-cb297aa31444", "guess": "human", "label": "We think this was probably written by a person. If this is your work, no action is needed.", "model_score": 0.0071, "request_id": "unit9-after-normal-1", "style_score": 0.3343}
+- New audit entries: `10`
+- New decided entries: `10`
+- Completed operational entries: `10`
+- Failure operational entries: `5`
 ```
 
-Criterion 5, from the after operational records:
+The ten `decided` entries belong to the ten normal submissions; none of the five `unit9-failure-after-*` creators has a `decided` entry.
+
+**Criterion 3** — the unedited failure record from `logs/operations.jsonl` (written by `operations.py::log_event`), showing timestamp, request ID, stage, error type, status, and duration:
 
 ```json
-{"stage_durations_ms": {"detector": 107.57670400198549, "scoring": 0.008235998393502086, "stylometry": 0.07836200529709458}, "duration_ms": 114.872, "request_id": "unit9-after-normal-2"}
+{"timestamp": "2026-11-11T04:28:56.945+00:00", "request_id": "unit9-after-failure-1", "event": "scoring_failed", "stage": "detector", "status_code": 503, "duration_ms": 0.102, "input": {"creator_id": "unit9-failure-after-1", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "error_type": "DetectorUnavailable", "stage_durations_ms": {"detector": 0.059569996665231884}}
+```
+
+**Criterion 4** — a normal response from `results/unit9_after.md` (the success path of `app.py::submit`):
+
+```text
+- Trial 1: `200` `{"confidence": 0.138, "content_id": "145c832a-b464-4c90-bd0a-cb297aa31444", "guess": "human", "label": "We think this was probably written by a person. If this is your work, no action is needed.", "model_score": 0.0071, "request_id": "unit9-after-normal-1", "style_score": 0.3343}`
+```
+
+**Criterion 5** — durations on both paths, unedited from `logs/operations.jsonl` (written by `operations.py::log_event`): one normal and one failed request from after run 1.
+
+```json
+{"timestamp": "2026-11-11T04:28:55.703+00:00", "request_id": "unit9-after-normal-2", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 114.872, "input": {"creator_id": "unit9-normal-after-2", "text_chars": 70, "text_tokens": 9}, "output": {"content_id": "ac325346-dffa-4e1c-be18-18c92b6a73f6", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 107.57670400198549, "stylometry": 0.07836200529709458, "scoring": 0.008235998393502086}}
+{"timestamp": "2026-11-11T04:28:56.955+00:00", "request_id": "unit9-after-failure-2", "event": "scoring_failed", "stage": "detector", "status_code": 503, "duration_ms": 0.081, "input": {"creator_id": "unit9-failure-after-2", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "error_type": "DetectorUnavailable", "stage_durations_ms": {"detector": 0.044262997107580304}}
 ```
 
 ### Verdicts and diagnosis
 
-All five criteria were MET before and after the improvement. No failure target was missed. Criterion 4 was the least demanding target: it required 9 of 10 normal submissions, while the measured result was 10 of 10. I am not changing the original criterion after seeing the result. If this system continued into another unit, I would tighten that target to 10 of 10 because the current normal path met it without an exception.
+All five criteria were MET in all three before runs and all three after runs, so there is no missed target to diagnose. I am not changing any original criterion after seeing the results. Because nothing missed, the useful question is which targets were too easy. Each one is below, with a tighter target I would use next time:
 
-The successful results do not mean there is no useful diagnosis. The original visibility target proved that a failure record existed, but it did not show which internal stage consumed the time. The detector is the dominant stage: in the after run, normal-request detector time averaged about 23,221 ms, compared with about 0.131 ms for stylometry and 0.008 ms for scoring. The first normal request took about 231 seconds while the model loaded; the remaining requests were roughly 108–171 ms. That behavior was not visible by stage before the improvement.
+| Criterion | Why the target was too low | Tighter target |
+|---|---|---|
+| 1. Safe failure response | The injected exception is raised instantly, before any model work, so 5/5 was almost guaranteed. It never tests a slow or partial failure. | 5/5 forced failures return the safe `503` **within 1,000 ms**, and 5/5 more come from a real model-load failure (model files unavailable) instead of a mock. |
+| 2. No false decisions | It only covers the `DetectorUnavailable` branch. The generic `except Exception` branch is never triggered. | 10/10 with zero `decided` entries: 5 detector failures plus 5 injected stylometry/scoring exceptions. |
+| 3. Failure visibility | It checks that the `stage` field *exists*, not that it names the stage that actually failed. | 10/10 failure records whose `stage` equals the stage that raised, across both failure branches. This tighter target would have caught a real bug, described under *What's Still Broken*. |
+| 4. Normal path | It allows 1 failure in 10, but the measured result was 10/10 in all six runs. | 10/10 normal submissions valid, and every warm request (all except the first) completes in under 500 ms. Warm requests measured about 100–190 ms. |
+| 5. Timing on both paths | Any non-negative number passes, so it can't show *where* time goes. | 15/15 requests have a total `duration_ms` **and** a `stage_durations_ms` entry for every stage the request reached. |
+
+**Diagnosis that led to the improvement.** Criterion 5 passed, but the before runs showed it was measuring the wrong level. In before runs 1–3 the first normal request took 103,041 ms, 176,499 ms, and 163,717 ms, while the other nine averaged 127 ms, 146 ms, and 150 ms. The before records only had one total `duration_ms` per request, so nothing in the log could say which component caused that 1,000× difference. The component is the operational logging in `app.py::submit`/`operations.py::log_event`. The mechanism is that it timed the request as a single interval around detector, stylometry, and scoring together, so any slow stage looked the same as any other. My suspicion was the detector's model load, but the logs couldn't prove it.
 
 ## The Improvement
 
-I added `stage_durations_ms` to each operational event in `operations.py` and measured the detector, stylometry, and scoring stages in `app.py`. Detector failures retain the partial detector duration, so the failure path is observable as well as the success path.
+**The change.** I added `stage_durations_ms` to each operational event in `operations.py` and timed the detector, stylometry, and scoring stages separately in `app.py::submit` (commit `b25cdec`). Detector failures keep the partial detector duration, so the failure path records stages as well as the success path. This follows directly from the diagnosis above: the before logs could not attribute the slow first request to a stage.
 
-The change helped observability, not classification outcomes: all five criteria remained MET, and all ten normal requests plus five forced failures behaved the same way before and after. The evidence that it helped is the new stage-level data identifying the detector as the dominant cost. The tradeoff is a small amount of timing and JSON logging work per request; the measured stage values show that overhead is negligible beside detector execution.
+**Re-run.** All five criteria were re-run three times after the change (After 1–3 in the table above, same format as before).
+
+**Did it help?** Yes for diagnosis; no change to outcomes, as intended. All five verdicts stayed MET and every normal and failed request behaved the same way, so the change caused no regression. The new data answers the question the before logs could not: in after run 1, the cold first request spent 231,048 ms of its total in the detector stage, while stylometry took about 0.1 ms and scoring about 0.01 ms per request. That confirms detector model loading as the dominant stage.
+
+**Tradeoff.** Each request does three extra timer reads and writes a slightly larger JSON line. The measured stylometry and scoring times show that overhead is negligible beside detector execution. The log file grows a little faster, which matters only because there is no log rotation (see below).
 
 ## How I Used AI
 
@@ -1584,13 +1601,21 @@ The change helped observability, not classification outcomes: all five criteria 
 
 ## What's Still Broken
 
-No Unit 9 criterion remains missed. The failure path now returns a safe response and records enough information to diagnose it, while the normal path still produces complete decisions.
+No Unit 9 criterion was missed. The tested failure path returns a safe response and records enough information to diagnose it, and the normal path still produces complete decisions. These are the weaknesses that remain:
 
-The main remaining operational weakness is cold-start latency. The after run measured approximately 231 seconds for the first normal request while the local detector model loaded, while the following normal requests took roughly 108–171 milliseconds. The stage breakdown identifies `detector.model_signal` and model loading as the mechanism; stylometry and score combination are not the source of the delay. I stopped there because reducing model startup time would require a broader serving or model-loading change outside this unit's bounded failure-hardening scope.
+- **Cold-start latency.**
+  - *What's wrong:* The first normal request took 103–231 seconds across the six runs while the local detector model loaded. Later requests took about 100–190 ms. The stage breakdown puts this in `detector.model_signal` and model loading; stylometry and scoring are not the cause.
+  - *What I'd do:* Load the model in an explicitly warmed worker at startup.
+  - *Why I stopped:* That is a model-serving change, outside this unit's bounded failure-hardening scope.
+- **The generic error branch is untested, and it had a bug.**
+  - *What's wrong:* All 15 forced failures used `DetectorUnavailable`, so the `except Exception` branch in `app.py::submit` never ran. While reviewing the code after the runs, I found that this branch always logged `stage: "scoring"`, even when stylometry was the stage that raised. I changed it to log `current_stage`. No trial reaches that branch, so none of the recorded results change. A one-off check with temporary logs confirmed the fix: an exception raised in `stylometry.style_signal` returns `503 scoring_unavailable`, writes no audit entry, and now logs `stage: "stylometry"`. It is still not part of the criteria runs.
+  - *What I'd do:* Run the tightened Criteria 2 and 3 above.
+  - *Why I stopped:* Adding a second failure scenario means changing the criteria set after the results, and the runs are already committed.
+- **The operational log has no rotation or durable storage.**
+  - *What's wrong:* `logs/operations.jsonl` grows without limit on one local disk.
+  - *Why I stopped:* That is a production-operations concern, outside the scope of a Path B local service.
 
-The generic unexpected-scoring-error branch is implemented but was not used as one of the five forced-failure trials; the tested failure path used the detector's real `DetectorUnavailable` exception. Given another unit, I would first add a second deliberate failure scenario for an unexpected stylometry or scoring exception, because that would verify the other branch without changing the normal detector behavior.
-
-If this were a production service, I would next move model loading into an explicitly warmed worker and add log rotation or durable centralized storage. Those changes come after the failure behavior because the current evidence shows that the detector's cold start is the dominant operational cost.
+**First next step:** add a second forced-failure scenario that injects an exception into `stylometry.style_signal`, and re-run with the tightened Criteria 2 and 3. It comes first because it is the only failure-handling code shipped in this unit that has no run evidence. It also already had one real bug, which a test of the stage field would have caught. Cold-start work comes after that because it is a performance improvement, not a correctness gap in the extension itself.
 
 ---
 

@@ -312,7 +312,7 @@ def submit():
         operations.log_event(
             request_id=request_id,
             event="scoring_failed",
-            stage="scoring",
+            stage=current_stage,
             status_code=503,
             duration_ms=duration_ms,
             input_summary=input_summary,
