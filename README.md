@@ -1435,8 +1435,10 @@ fix.
        [ ] The SAME repository URL as last unit
 
      Do not delete and recreate this repository.
-
+-->
 ---
+
+# ------- Unit 9 -------
 
 # Unit 9 — The Capstone
 
@@ -1476,6 +1478,19 @@ The normal trials use the real local detector. The failure trials inject the det
 The existing `logs/audit.jsonl` records classification decisions. Unit 9 adds `logs/operations.jsonl`, which records request ID, event, stage, response status, duration, input summary, output summary, error type, and—after the improvement—per-stage durations.
 
 The first run produced 10 normal `200` responses and 5 forced `503` responses. The second run produced the same behavior, showing that the instrumentation change did not regress the service.
+
+## What It Costs
+
+I measured cost as local compute time because this Path B system uses a model on my own machine and does not make a paid API call. The after run recorded the `duration_ms` field for ten normal submissions in `logs/operations.jsonl`. Their mean was `23,230.8763 ms`, or approximately `23.231 seconds` of compute per normal submission, including the cold model-load request.
+
+For 100 normal submissions per day:
+
+```text
+23.231 seconds/run × 100 runs/day = 2,323.1 seconds/day
+2,323.1 seconds ÷ 60 = 38.72 minutes of local compute/day
+```
+
+The first request is not representative of a warm process: it took about 231 seconds while the detector loaded. Excluding that first request, the remaining nine averaged about 138.8 ms each. I report the ten-run average above because it includes the real startup cost a fresh local run experiences.
 
 ### Run log — before and after
 
@@ -1535,6 +1550,30 @@ The successful results do not mean there is no useful diagnosis. The original vi
 I added `stage_durations_ms` to each operational event in `operations.py` and measured the detector, stylometry, and scoring stages in `app.py`. Detector failures retain the partial detector duration, so the failure path is observable as well as the success path.
 
 The change helped observability, not classification outcomes: all five criteria remained MET, and all ten normal requests plus five forced failures behaved the same way before and after. The evidence that it helped is the new stage-level data identifying the detector as the dominant cost. The tradeoff is a small amount of timing and JSON logging work per request; the measured stage values show that overhead is negligible beside detector execution.
+
+## How I Used AI
+
+**Moment 1 — diagnosing the environment mismatch**
+
+- *What I asked for:* I asked Codex to investigate why the project passed in my activated WSL environment but failed when run through PowerShell.
+- *What came back:* It identified that the project used a POSIX `.venv/bin` environment while the separate PowerShell process was looking for `.venv/Scripts`.
+- *What I changed:* I kept the existing environment and ran the tests in the correct WSL terminal instead of recreating or changing the project environment.
+
+**Moment 2 — interpreting the before/after results**
+
+- *What I asked for:* I asked Codex to compare the Unit 9 before and after results and determine whether the stage-timing improvement changed system behavior.
+- *What came back:* The criteria remained 5/5, 5/5, 5/5, 10/10, and 10/10, so the improvement did not change classification behavior. The new stage timings showed that detector/model loading dominated runtime.
+- *What I changed:* I documented the unchanged verdicts as evidence of no regression and used the timing breakdown to identify detector/model loading as the remaining diagnosis.
+
+## What's Still Broken
+
+No Unit 9 criterion remains missed. The failure path now returns a safe response and records enough information to diagnose it, while the normal path still produces complete decisions.
+
+The main remaining operational weakness is cold-start latency. The after run measured approximately 231 seconds for the first normal request while the local detector model loaded, while the following normal requests took roughly 108–171 milliseconds. The stage breakdown identifies `detector.model_signal` and model loading as the mechanism; stylometry and score combination are not the source of the delay. I stopped there because reducing model startup time would require a broader serving or model-loading change outside this unit's bounded failure-hardening scope.
+
+The generic unexpected-scoring-error branch is implemented but was not used as one of the five forced-failure trials; the tested failure path used the detector's real `DetectorUnavailable` exception. Given another unit, I would first add a second deliberate failure scenario for an unexpected stylometry or scoring exception, because that would verify the other branch without changing the normal detector behavior.
+
+If this were a production service, I would next move model loading into an explicitly warmed worker and add log rotation or durable centralized storage. Those changes come after the failure behavior because the current evidence shows that the detector's cold start is the dominant operational cost.
      ═════════════════════════════════════════════════════════════════════ -->
 
 ---
