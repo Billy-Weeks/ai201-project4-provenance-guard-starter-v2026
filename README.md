@@ -1619,4 +1619,36 @@ No Unit 9 criterion was missed. The tested failure path returns a safe response 
 
 ---
 
+## Unit 9 Stretch — Declared
+
+Declared before any implementation. Nothing below is built yet; results will be added under each item once measured.
+
+### Stretch 1 — Second measured improvement: warm the detector at startup
+
+**Diagnosis it follows from.** The stage timing added in *The Improvement* showed that the first normal request in every run is 1,000× slower than the rest: in after runs 1–3 the detector stage of the first request took 231,048 ms, 164,574 ms, and 157,660 ms, while warm detector calls took about 100–185 ms. The component is `detector.model_signal`. The mechanism is that it calls `detector._load()` lazily, so the first user request to reach the detector pays for loading the 526 MB `gpt2` model.
+
+**The change.** `app.py` will call the existing `detector.warm_up()` once when the app module is created, before any request is served. That load will be timed and written to `logs/operations.jsonl` as a `startup` event with its own `duration_ms`, so the cost is moved where it can be seen, not hidden. No other stage, threshold, or route behavior changes.
+
+**How it will be measured.** `python run_unit9.py --label after2-1`, `after2-2`, and `after2-3`: the same five criteria, three runs, added as three new columns in the same table format as the before/after runs.
+
+**Prediction.** All five criteria stay MET. The first normal request drops from 157–231 s to warm speed (under 1 s). The per-request cost average in *What It Costs* drops to roughly the warm average, and the model-load time appears once per process as the `startup` event. The expected tradeoff is that the service takes a minute or more to become ready after starting.
+
+### Stretch 2 — Load observation at about ten times the normal rate
+
+**Normal rate.** The service's rate limit is 10 submissions per minute per `creator_id` (`config.RATE_LIMIT_PER_MINUTE`), so normal use is defined as **10 requests per minute**.
+
+**The test.** With the service running through `python app.py` (after Stretch 1, so the model is already warm), a small load script will send:
+
+| Phase | Rate | Duration | Callers |
+|---|---|---|---|
+| Baseline | 10 requests/minute | 1 minute | one `creator_id` |
+| Load A | 100 requests/minute (10×) | 1 minute | one `creator_id`: the rate limiter should engage |
+| Load B | 100 requests/minute (10×) | 1 minute | ten `creator_id`s at 10/minute each: the limiter should not engage, so the detector takes the full load |
+
+**What will be reported for each phase, with numbers:** count of each status code (`200`, `429`, `503`, other), median and 95th-percentile latency, total compute seconds from `logs/operations.jsonl`, and whether any request errored or timed out. If a measure doesn't change, that will be reported as "no change" with the numbers.
+
+**Prediction.** Load A returns about 10 `200`s and about 90 `429`s with no latency change for the accepted requests. Load B returns all `200`s, but median latency rises because one local model process scores every request.
+
+---
+
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
