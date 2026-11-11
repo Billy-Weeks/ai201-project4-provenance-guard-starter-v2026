@@ -1459,6 +1459,82 @@ The visibility work is supporting instrumentation for this failure path: it will
 This unit will not retrain or recalibrate the detector, redesign the scoring model, add a new user-facing endpoint or dashboard, change the existing appeal workflow, or deploy the local model to a hosted service. It will also not change the existing rate-limit policy except where needed to preserve and test its current behavior.
 
 The first implementation step is to define the five Unit 9 acceptance criteria in `criteria.md` before changing feature code.
+
+## Running It
+
+Unit 9 uses the local-with-logs path documented in [RUNNING.md](RUNNING.md). The evaluation runner was run from the activated Python environment with:
+
+```bash
+python run_unit9.py --label before
+python run_unit9.py --label after
+```
+
+The normal trials use the real local detector. The failure trials inject the detector's existing `DetectorUnavailable` exception at the detector boundary; this tests the production error path without adding a public test switch to the service.
+
+## Instrumentation
+
+The existing `logs/audit.jsonl` records classification decisions. Unit 9 adds `logs/operations.jsonl`, which records request ID, event, stage, response status, duration, input summary, output summary, error type, and—after the improvement—per-stage durations.
+
+The first run produced 10 normal `200` responses and 5 forced `503` responses. The second run produced the same behavior, showing that the instrumentation change did not regress the service.
+
+### Run log — before and after
+
+The full generated reports are `results/unit9_before.md` and `results/unit9_after.md`.
+
+| Criterion | Target | Before | After | Verdict after |
+|---|---:|---:|---:|---|
+| 1. Safe detector-failure response | 5/5 | 5/5 | 5/5 | MET |
+| 2. No false decisions on detector failure | 5/5 | 5/5 | 5/5 | MET |
+| 3. Complete failure visibility | 5/5 | 5/5 | 5/5 | MET |
+| 4. Normal submissions remain valid | 9/10 | 10/10 | 10/10 | MET |
+| 5. Timing on both paths | 10/10 | 10/10 | 10/10 | MET |
+
+### Real output evidence
+
+Criterion 1, from `run_unit9.py::run` and `results/unit9_after.md`:
+
+```json
+{"error": "detector_unavailable", "message": "The detector is temporarily unavailable. Try again later.", "request_id": "unit9-after-failure-1"}
+```
+
+Criterion 2, from the same run's audit summary:
+
+```text
+New audit entries: 10
+New decided entries: 10
+```
+
+The five forced failure creators produced no `decided` entries; the ten `decided` entries correspond to the ten normal submissions.
+
+Criterion 3, from `logs/operations.jsonl`:
+
+```json
+{"duration_ms": 0.102, "error_type": "DetectorUnavailable", "event": "scoring_failed", "input": {"creator_id": "unit9-failure-after-1", "text_chars": 70, "text_tokens": 9}, "output": {"error": "detector_unavailable"}, "request_id": "unit9-after-failure-1", "stage": "detector", "stage_durations_ms": {"detector": 0.059569996665231884}, "status_code": 503}
+```
+
+Criterion 4, from `results/unit9_after.md`:
+
+```text
+Trial 1: 200 {"confidence": 0.138, "content_id": "145c832a-b464-4c90-bd0a-cb297aa31444", "guess": "human", "label": "We think this was probably written by a person. If this is your work, no action is needed.", "model_score": 0.0071, "request_id": "unit9-after-normal-1", "style_score": 0.3343}
+```
+
+Criterion 5, from the after operational records:
+
+```json
+{"stage_durations_ms": {"detector": 107.57670400198549, "scoring": 0.008235998393502086, "stylometry": 0.07836200529709458}, "duration_ms": 114.872, "request_id": "unit9-after-normal-2"}
+```
+
+### Verdicts and diagnosis
+
+All five criteria were MET before and after the improvement. No failure target was missed. Criterion 4 was the least demanding target: it required 9 of 10 normal submissions, while the measured result was 10 of 10. I am not changing the original criterion after seeing the result. If this system continued into another unit, I would tighten that target to 10 of 10 because the current normal path met it without an exception.
+
+The successful results do not mean there is no useful diagnosis. The original visibility target proved that a failure record existed, but it did not show which internal stage consumed the time. The detector is the dominant stage: in the after run, normal-request detector time averaged about 23,221 ms, compared with about 0.131 ms for stylometry and 0.008 ms for scoring. The first normal request took about 231 seconds while the model loaded; the remaining requests were roughly 108–171 ms. That behavior was not visible by stage before the improvement.
+
+## The Improvement
+
+I added `stage_durations_ms` to each operational event in `operations.py` and measured the detector, stylometry, and scoring stages in `app.py`. Detector failures retain the partial detector duration, so the failure path is observable as well as the success path.
+
+The change helped observability, not classification outcomes: all five criteria remained MET, and all ten normal requests plus five forced failures behaved the same way before and after. The evidence that it helped is the new stage-level data identifying the detector as the dominant cost. The tradeoff is a small amount of timing and JSON logging work per request; the measured stage values show that overhead is negligible beside detector execution.
      ═════════════════════════════════════════════════════════════════════ -->
 
 ---
