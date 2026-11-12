@@ -25,6 +25,7 @@ Routes:
     GET  /health      is the service up, and is the model loaded
 """
 
+import os
 import time
 import uuid
 
@@ -433,6 +434,53 @@ def get_log():
     limit = request.args.get("limit", type=int)
     entries = audit.read_entries(limit=limit)
     return jsonify({"count": len(entries), "entries": entries})
+
+
+# ── Unit 9 stretch: warm the detector at startup ──────────────────────────────
+# Without this, the first /submit pays for loading the model (100–230 s in the
+# Unit 9 runs). Loading here moves that cost to startup and records it as its
+# own operational event. A failed load does not stop the service: /submit still
+# returns the safe 503 path when the detector is unavailable.
+
+def _warm_detector() -> None:
+    started = time.perf_counter()
+    try:
+        detector.warm_up()
+    except detector.DetectorUnavailable as exc:
+        operations.log_event(
+            request_id="startup",
+            event="startup_warmup",
+            stage="detector",
+            status_code=503,
+            duration_ms=(time.perf_counter() - started) * 1000,
+            input_summary={"model": config.DETECTOR_MODEL},
+            output_summary={"detector_loaded": False, "error": str(exc)[:200]},
+            error_type="DetectorUnavailable",
+        )
+        return
+    duration_ms = (time.perf_counter() - started) * 1000
+    operations.log_event(
+        request_id="startup",
+        event="startup_warmup",
+        stage="detector",
+        status_code=200,
+        duration_ms=duration_ms,
+        input_summary={"model": config.DETECTOR_MODEL},
+        output_summary={"detector_loaded": True},
+        stage_durations_ms={"detector_load": duration_ms},
+    )
+
+
+# With debug on, `python app.py` runs twice: a reloader parent that only watches
+# files, and a child (WERKZEUG_RUN_MAIN=true) that serves requests. Warm only
+# the process that serves.
+_reloader_parent = (
+    __name__ == "__main__"
+    and config.DEBUG
+    and os.environ.get("WERKZEUG_RUN_MAIN") != "true"
+)
+if config.DETECTOR_WARMUP and not _reloader_parent:
+    _warm_detector()
 
 
 def main():

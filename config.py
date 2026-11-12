@@ -116,4 +116,8 @@ RATE_LIMIT_STORAGE = "memory://"
 LOG_DIR = ROOT / "logs"
 AUDIT_LOG = LOG_DIR / "audit.jsonl"
 OPERATIONAL_LOG = LOG_DIR / "operations.jsonl"
+
+# Unit 9 stretch: load the detector when the app starts instead of on the first
+# /submit. Set AI201_WARMUP=0 to skip it (e.g. a quick `python test.py`).
+DETECTOR_WARMUP = os.getenv("AI201_WARMUP", "1") == "1"
 RESULTS_DIR = ROOT / "results"
