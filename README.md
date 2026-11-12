@@ -1604,6 +1604,16 @@ All five criteria were MET in all three before runs and all three after runs, so
 - *What came back:* The criteria remained 5/5, 5/5, 5/5, 10/10, and 10/10, so the improvement did not change classification behavior. The new stage timings showed that detector/model loading dominated runtime.
 - *What I changed:* I documented the unchanged verdicts as evidence of no regression and used the timing breakdown to identify detector/model loading as the remaining diagnosis.
 
+**Moment 3 — making startup readiness visible**
+
+- *What I asked for:* After Stretch 1 moved the model load to startup, `python app.py` sat silent for about two minutes before serving. I asked Claude Code whether adding an automatic `/health` check at startup would be too much this late in the unit.
+- *What came back:* It recommended adding it and explained the trade-off. Calling `/health` internally just before the server starts listening shows the same state the first real request will see. The change wouldn't affect grading or any measured behavior, but it would be one more code change after my committed results. It also caught that Flask's debug reloader runs a file-watcher process that never loads the model, which would print a misleading `detector_loaded: false`. When I asked whether this removed the pause, it confirmed it didn't: the two-minute load still happens, so the check alone would still leave the wait itself silent.
+- *What I changed:* I decided a clearer startup was worth it for anyone running the project, because the silent wait was a confusion we had just documented in `RUNNING.md`. I had it add two things:
+  - a `Loading detector model (about 2 minutes)...` line printed when the warm-up starts, so the wait is explained;
+  - the startup health check, which prints one of three outcomes (ready, warm-up off, or detector failed with the fix to run) and skips the watcher process.
+
+  The expected output is now shown in `RUNNING.md`. Neither change touches `/submit` or the logs, so I kept them out of the stretch claims and didn't treat them as a measured improvement.
+
 ## What's Still Broken
 
 No Unit 9 criterion was missed. The tested failure path returns a safe response and records enough information to diagnose it, and the normal path still produces complete decisions. These are the weaknesses that remain:

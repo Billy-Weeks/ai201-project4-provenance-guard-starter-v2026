@@ -25,6 +25,7 @@ Routes:
     GET  /health      is the service up, and is the model loaded
 """
 
+import json
 import os
 import time
 import uuid
@@ -449,6 +450,7 @@ def get_log():
 # returns the safe 503 path when the detector is unavailable.
 
 def _warm_detector() -> None:
+    print(f"Loading detector model '{config.DETECTOR_MODEL}' (about 2 minutes)...", flush=True)
     started = time.perf_counter()
     try:
         detector.warm_up()
@@ -489,6 +491,26 @@ if config.DETECTOR_WARMUP and not _reloader_parent:
     _warm_detector()
 
 
+def _print_startup_health() -> None:
+    """Print GET /health once at startup so it's clear whether the service can score.
+
+    Called internally through the test client just before the server starts
+    listening. The warm-up has already run by then, so this shows the state
+    the first real request will see. The reloader's watcher process is
+    skipped, because it never loads the model.
+    """
+    body = app.test_client().get("/health").get_json()
+    print(f"Health: {json.dumps(body, sort_keys=True)}")
+    if body.get("detector_loaded"):
+        print("Ready to score.")
+    elif not config.DETECTOR_WARMUP:
+        print("Warm-up is off (AI201_WARMUP=0): the first /submit will load the model.")
+    else:
+        print("Detector did NOT load. /submit will return 503 detector_unavailable.")
+        print("Run `python detector.py` to download the model, then restart.")
+    print()
+
+
 def main():
     print(f"Provenance Guard on http://{config.HOST}:{config.PORT}")
     print(f"  detector model:  {config.DETECTOR_MODEL}")
@@ -500,6 +522,8 @@ def main():
     print('    -H "Content-Type: application/json" \\')
     print("    -d '{\"message\": \"hello\"}'")
     print()
+    if not _reloader_parent:
+        _print_startup_health()
     # debug=True hands out an interactive debugger, so it's local-only — see config.py
     app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
 
