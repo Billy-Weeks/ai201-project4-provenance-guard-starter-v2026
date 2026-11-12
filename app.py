@@ -258,6 +258,9 @@ def submit():
             "message": f"text must be at most {config.MAX_TEXT_CHARS} characters.",
         }), 400
 
+    # Stretch 3: everything from arrival to here is reading and checking input.
+    stage_durations_ms = {"validation": (time.perf_counter() - started) * 1000}
+
     content_id = str(uuid.uuid4())
     input_summary = {
         "creator_id": creator_id,
@@ -265,12 +268,13 @@ def submit():
         "text_tokens": len(text.split()),
     }
 
-    stage_durations_ms = {}
     current_stage = "detector"
     stage_started = time.perf_counter()
     try:
         model_score = detector.model_signal(text)
         stage_durations_ms["detector"] = (time.perf_counter() - stage_started) * 1000
+        # Stretch 3: the detector's internal steps (tokenize, forward, score).
+        stage_durations_ms.update(detector.last_timings())
 
         current_stage = "stylometry"
         stage_started = time.perf_counter()
@@ -327,6 +331,7 @@ def submit():
             "request_id": request_id,
         }), 503
 
+    stage_started = time.perf_counter()
     audit.log_decision(
         content_id=content_id,
         creator_id=creator_id,
@@ -337,6 +342,7 @@ def submit():
         label=label,
         status="decided",
     )
+    stage_durations_ms["audit_write"] = (time.perf_counter() - stage_started) * 1000
 
     operations.log_event(
         request_id=request_id,

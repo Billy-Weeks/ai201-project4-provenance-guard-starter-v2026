@@ -42,11 +42,28 @@ for yourself where it lands.
 """
 
 import math
+import threading
+import time
 
 import config
 
 _model = None
 _tokenizer = None
+
+# Unit 9 stretch 3: per-call step timings, kept per thread so concurrent
+# requests on a threaded server never read each other's numbers.
+_timings = threading.local()
+
+
+def _record(step: str, started: float) -> None:
+    values = getattr(_timings, "values", None)
+    if values is not None:
+        values[step] = (time.perf_counter() - started) * 1000
+
+
+def last_timings() -> dict:
+    """Step timings (ms) from this thread's most recent model_signal call."""
+    return dict(getattr(_timings, "values", None) or {})
 
 
 class DetectorUnavailable(RuntimeError):
@@ -94,6 +111,7 @@ def perplexity(text: str) -> float:
 
     model, tokenizer = _load()
 
+    step_started = time.perf_counter()
     encoded = tokenizer(
         text,
         return_tensors="pt",
@@ -101,13 +119,16 @@ def perplexity(text: str) -> float:
         max_length=config.DETECTOR_MAX_TOKENS,
     )
     input_ids = encoded["input_ids"]
+    _record("detector_tokenize", step_started)
 
     # Two tokens is not enough to be surprised by anything.
     if input_ids.shape[1] < 3:
         raise ValueError("Text is too short to score — a few sentences at least.")
 
+    step_started = time.perf_counter()
     with torch.no_grad():
         output = model(input_ids, labels=input_ids)
+    _record("detector_forward", step_started)
 
     # The model's loss here IS mean negative log-likelihood per token.
     return float(math.exp(output.loss.item()))
@@ -125,14 +146,18 @@ def model_signal(text: str) -> float:
     inputs in Milestone 4 and seen what your own text actually scores. If you
     do, say so in your README: it's a scoring decision, not a detail.
     """
+    _timings.values = {}
     ppl = perplexity(text)
 
+    step_started = time.perf_counter()
     midpoint = 45.0    # perplexity that scores 0.5
     steepness = 1.6    # how sharply the score moves either side of it
 
     # Logistic on log-perplexity. Low perplexity -> high AI score.
     score = 1.0 / (1.0 + (ppl / midpoint) ** steepness)
-    return round(min(max(score, 0.0), 1.0), 4)
+    result = round(min(max(score, 0.0), 1.0), 4)
+    _record("detector_score", step_started)
+    return result
 
 
 def warm_up() -> str:
