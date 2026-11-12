@@ -1,31 +1,37 @@
 # Running Provenance Guard
 
-Everything about how the starter works.
+Everything about how the service works and how to run it.
 
 This is a **web service**. It runs on your machine and you talk to it with
-`curl` from another terminal. If you've not built a backend before, that's
-assumed — the starter ships one that already answers.
+`curl` from another terminal. `/submit` and `/appeal` are fully built
+(Units 7–8), and Unit 9 added a safe failure path, operational logging, and
+a startup model warm-up.
+
+> **Reproducing the Unit 9 results?** Skip to
+> [Unit 9 run path — Path B, local with logs](#unit-9-run-path--path-b-local-with-logs).
+> That section has the exact environment (WSL, Python 3.12.3, pinned versions)
+> and the one command that produced the committed run records. The sections
+> before it are general setup and reference.
 
 ---
 
-## Before your first class
+## First-time setup
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+python detector.py                 # downloads the model (~550 MB) and scores a sample
 python test.py
 ```
 
 **You're ready when `python test.py` passes.**
 
-You'll see `[WARN] Detector model — not downloaded yet`:
-
-```bash
-python detector.py
-```
-
-That downloads about 550 MB and scores a sample.
+Run `python detector.py` **before** `python test.py`. `test.py` imports the
+app, and the app loads the model at startup (Unit 9). Without the download
+done first, `test.py` would quietly download it and look frozen for several
+minutes. For a quick environment check that skips the model load, run
+`AI201_WARMUP=0 python test.py`.
 
 > **No API key for this pair.** Nothing here calls a hosted service. The model
 > that reads your text runs on your own laptop.
@@ -39,6 +45,11 @@ Two terminals. In the first:
 ```bash
 python app.py
 ```
+
+The service loads the detector model before it serves anything, which takes
+about 2 minutes on the laptop used for Unit 9. `/ping` answers once startup
+finishes, and `GET /health` shows `"detector_loaded": true` once it's ready to
+score.
 
 In the second:
 
@@ -68,16 +79,26 @@ sent it data, it sent something back.
 `/ping` still answers: if it does, the problem is in your handler; if it
 doesn't, it's the service itself, and that's a help-channel question.
 
-Then try the route you're going to build:
+Then submit some text:
 
 ```bash
 curl -X POST http://127.0.0.1:5000/submit \
   -H "Content-Type: application/json" \
-  -d '{"text": "some writing", "creator_id": "me"}'
+  -d '{"text": "A careful audit trail helps reviewers understand every classification.", "creator_id": "me"}'
 ```
 
-It returns a `501` saying it isn't built yet. **That's the correct starting
-position.**
+It returns `200` with a `content_id`, `guess`, `confidence`, `label`,
+`model_score`, `style_score`, and `request_id`. Text with fewer than three
+words is rejected with `400 text_too_short`, and text over 10,000 characters
+with a `400` as well.
+
+To appeal a result, send its `content_id` back:
+
+```bash
+curl -X POST http://127.0.0.1:5000/appeal \
+  -H "Content-Type: application/json" \
+  -d '{"content_id": "<content_id from /submit>", "reasoning": "I wrote this myself."}'
+```
 
 ---
 
@@ -88,8 +109,9 @@ position.**
 | `POST /ping` | **works** | The example. Don't edit it |
 | `GET /health` | **works** | Is the service up, is the model loaded |
 | `GET /log` | **works** | The audit log, as JSON |
-| `POST /submit` | **you build it** | Milestones 3, 4, 5 |
-| `POST /appeal` | **you build it** | Milestone 5 |
+| `POST /submit` | **works** | Scores text with both signals, labels it, logs a decision. Rate-limited (10/min, 200/day per `creator_id`). Returns a safe `503` if scoring fails (Unit 9) |
+| `POST /appeal` | **works** | Marks a decision `under_review` and logs the appeal |
+| `GET /content/<id>` | **works** | One submission's audit history (Unit 7 stretch) |
 
 ---
 
@@ -105,6 +127,10 @@ position.**
 | `python run_attacks.py --set <folder>` | The attack set — **unit 8** |
 | `python run_attacks.py --flood 15` | Push past your rate limit and print the status codes — **unit 8** |
 | `python run_eval.py --label before` | Your five criteria, three trials — **unit 8** |
+| `python run_unit9.py --label <label>` | The five Unit 9 criteria, one full run — **unit 9** |
+| `python run_load.py` | Load observation against a running `app.py` — **unit 9 stretch** |
+| `python run_latency.py` | Per-stage latency breakdown — **unit 9 stretch** |
+| `python unit9_smoke.py` | Quick check of one normal and one failed submission, using temporary logs — **unit 9** |
 
 ---
 
@@ -255,8 +281,8 @@ model does not fit a 512 MB free host (arithmetic above).
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements-lock.txt   # or requirements.txt for the version ranges
-python test.py                          # environment check
-python detector.py                      # one-time ~550 MB model download
+python detector.py                      # one-time ~550 MB model download; run before test.py
+python test.py                          # environment check (loads the model, about 2 min)
 ```
 
 ### The start command
@@ -326,17 +352,23 @@ mean, median, 95th percentile, and share of request time.
 | File | What it does |
 |---|---|
 | `config.py` | Every setting: thresholds, weights, rate limits, the model |
-| `app.py` | The service. `/ping` and `/log` work; `/submit` and `/appeal` are yours |
-| `detector.py` | Signal one — the local model. Given to you |
-| `stylometry.py` | Signal two. **Stubs — you build these** |
-| `scoring.py` | Combining and labelling. **Stubs — you build these** |
-| `audit.py` | The audit log writer. Given to you |
+| `app.py` | The service: every route, the Unit 9 failure path, and the startup warm-up |
+| `detector.py` | Signal one: the local GPT-2 model, with per-step timings (Unit 9) |
+| `stylometry.py` | Signal two: sentence-length spread, vocabulary variety, punctuation density |
+| `scoring.py` | Combines the two signals and maps the score to a label |
+| `audit.py` | The audit log writer (decisions, rejections, appeals) |
+| `operations.py` | The Unit 9 operational log writer (timing, stage, errors per request) |
 | `run_attacks.py` | Runs the attack set — **unit 8** |
-| `run_eval.py` | Runs your criteria three times — **unit 8** |
-| `scenarios.py` | What your test runs. **You fill this in** |
-| `criteria.md` | Your five criteria. **You write all five** |
-| `logs/audit.jsonl` | Your audit log. **Commit it** |
-| `results/` | Attack runs and run logs. **Commit them** |
+| `run_eval.py` | Runs the Unit 7 criteria three times — **unit 8** |
+| `run_unit9.py` | Runs the Unit 9 criteria once per call — **unit 9** |
+| `run_load.py`, `run_latency.py` | Unit 9 stretch measurements |
+| `unit9_smoke.py` | Unit 9 smoke check, using temporary logs |
+| `scenarios.py` | Inputs for the Unit 7 criteria runs |
+| `criteria.md` | Unit 7 and Unit 9 acceptance criteria |
+| `requirements-lock.txt` | Exact package versions used for the Unit 9 runs |
+| `logs/audit.jsonl` | The audit log (committed evidence) |
+| `logs/operations.jsonl` | The operational log (committed evidence) |
+| `results/` | Attack runs, criteria runs, and stretch measurements (committed evidence) |
 
 ---
 
@@ -366,12 +398,16 @@ sentences, a pasted quotation. That is very cheap to do on purpose.
 
 | What you see | What it means |
 |---|---|
-| `501 not_implemented` | Correct at the start — that's the TODO in `app.py` |
+| `/ping` doesn't answer right after `python app.py` | The model is loading at startup (about 2 min). Wait, or start with `AI201_WARMUP=0` to load it on the first `/submit` instead |
+| `python test.py` seems frozen | It imports the app, which loads the model. Run `python detector.py` first, or use `AI201_WARMUP=0 python test.py` |
+| `503 detector_unavailable` from `/submit` | The model couldn't load (not downloaded, or no disk). Run `python detector.py`. Nothing was recorded as a decision |
+| `400 text_too_short` | The text has fewer than three words |
+| `429 rate_limited` | More than 10 submissions in a minute from one `creator_id` |
 | `404` from curl | Is the server running? Is the path exactly what you typed? |
 | `Cannot bind parameter 'Headers'` | You're in PowerShell, where `curl` is a different tool. Use `curl.exe`, on one line |
 | Request body arrives empty | curl needs `-H "Content-Type: application/json"` |
 | `Address already in use` | A server left running from an earlier attempt. Kill it, don't debug it |
-| The first submission takes 10+ seconds | Signal one is loading the model into memory. Later ones take a second or two |
+| The first submission takes about 0.5 s, later ones about 0.1–0.2 s | Normal: the model's first inference has a one-time cost. With `AI201_WARMUP=0`, the first submission instead pays the full model load (minutes) |
 | *Every* submission takes 10+ seconds | Something is reloading the model each call. `GET /health` shows `detector_loaded` — if it goes back to `false`, look for a reload in your handler |
 | `DetectorUnavailable` | Run `python detector.py` once to download the model |
 | `/appeal` seems to do nothing | Does the `content_id` you sent actually exist in the log? A typo there fails silently |
