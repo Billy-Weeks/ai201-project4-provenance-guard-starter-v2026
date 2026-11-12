@@ -47,9 +47,19 @@ python app.py
 ```
 
 The service loads the detector model before it serves anything, which takes
-about 2 minutes on the laptop used for Unit 9. `/ping` answers once startup
-finishes, and `GET /health` shows `"detector_loaded": true` once it's ready to
-score.
+about 2 minutes on the laptop used for Unit 9. The terminal says so straight
+away, and when the load is done it prints the `GET /health` result and a status
+line, just before the server starts listening:
+
+```text
+Loading detector model 'gpt2' (about 2 minutes)...
+...
+Health: {"detector_loaded": true, "detector_model": "gpt2", "log_entries": ..., "ok": true, "rate_limiting": true}
+Ready to score.
+```
+
+If it says the detector did not load, run `python detector.py` and restart.
+`GET /health` can be called at any time afterwards as well.
 
 In the second:
 
