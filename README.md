@@ -1607,6 +1607,7 @@ No Unit 9 criterion was missed. The tested failure path returns a safe response 
   - *What's wrong:* The first normal request took 103–231 seconds across the six runs while the local detector model loaded. Later requests took about 100–190 ms. The stage breakdown puts this in `detector.model_signal` and model loading; stylometry and scoring are not the cause.
   - *What I'd do:* Load the model in an explicitly warmed worker at startup.
   - *Why I stopped:* That is a model-serving change, outside this unit's bounded failure-hardening scope.
+  - *Update:* This was later done as the declared Unit 9 stretch (see *Unit 9 Stretch — Results*). The first request now takes about 0.5 s, and the load moved to about 131 s at startup.
 - **The generic error branch is untested, and it had a bug.**
   - *What's wrong:* All 15 forced failures used `DetectorUnavailable`, so the `except Exception` branch in `app.py::submit` never ran. While reviewing the code after the runs, I found that this branch always logged `stage: "scoring"`, even when stylometry was the stage that raised. I changed it to log `current_stage`. No trial reaches that branch, so none of the recorded results change. A one-off check with temporary logs confirmed the fix: an exception raised in `stylometry.style_signal` returns `503 scoring_unavailable`, writes no audit entry, and now logs `stage: "stylometry"`. It is still not part of the criteria runs.
   - *What I'd do:* Run the tightened Criteria 2 and 3 above.
@@ -1648,6 +1649,89 @@ Declared before any implementation. Nothing below is built yet; results will be 
 **What will be reported for each phase, with numbers:** count of each status code (`200`, `429`, `503`, other), median and 95th-percentile latency, total compute seconds from `logs/operations.jsonl`, and whether any request errored or timed out. If a measure doesn't change, that will be reported as "no change" with the numbers.
 
 **Prediction.** Load A returns about 10 `200`s and about 90 `429`s with no latency change for the accepted requests. Load B returns all `200`s, but median latency rises because one local model process scores every request.
+
+---
+
+## Unit 9 Stretch — Results
+
+Both items were built and measured after the declaration above was committed (`7ee190e`).
+
+### Stretch 1 results — warm the detector at startup
+
+**Built: what changed.**
+- `app.py::_warm_detector` calls `detector.warm_up()` when the app module loads. It times the load and writes a `startup_warmup` record to `logs/operations.jsonl`. If the model can't load, it logs a `503` startup record and the service still starts, so `/submit` keeps the safe `503` path from the main extension.
+- `config.DETECTOR_WARMUP` (environment variable `AI201_WARMUP`, on by default) can turn it off.
+- When `python app.py` runs with debug on, only the process that serves requests loads the model, not the reloader's watcher process.
+- Nothing else changed: no route, threshold, or stage.
+
+**Re-run: all five criteria, three trials, same format.** Reports are in `results/unit9_after2-1.md`, `results/unit9_after2-2.md`, and `results/unit9_after2-3.md`, produced by `python run_unit9.py --label after2-<n>` (`run_unit9.py::run`).
+
+| Criterion | Target | Before 1 | Before 2 | Before 3 | After 1 | After 2 | After 3 | After2 1 | After2 2 | After2 3 | Verdict |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| 1. Safe detector-failure response | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. No false decisions on detector failure | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Complete failure visibility | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Normal submissions remain valid | 9/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
+| 5. Timing on both paths | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | 10/10 | MET |
+
+**The number this change targeted.** All values are from `logs/operations.jsonl`.
+
+| Run | Startup load (`startup_warmup`) | First normal request | Mean of 10 normal requests |
+|---|---:|---:|---:|
+| After 1 (no warm-up) | — | 231,048 ms | 23,230.9 ms |
+| After 2 (no warm-up) | — | 164,574 ms (detector stage) | — |
+| After 3 (no warm-up) | — | 157,666 ms | — |
+| After2 1 | 131,707 ms | 609 ms | 198.4 ms |
+| After2 2 | 137,068 ms | 616 ms | 188.1 ms |
+| After2 3 | 131,365 ms | 456 ms | 163.8 ms |
+
+These are the unedited startup record and first normal request from after2 run 1:
+
+```json
+{"timestamp": "2026-11-12T00:02:57.037+00:00", "request_id": "startup", "event": "startup_warmup", "stage": "detector", "status_code": 200, "duration_ms": 131706.922, "input": {"model": "gpt2"}, "output": {"detector_loaded": true}, "error_type": null, "stage_durations_ms": {"detector_load": 131706.92178399622}}
+{"timestamp": "2026-11-12T00:02:57.733+00:00", "request_id": "unit9-after2-1-normal-1", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 609.109, "input": {"creator_id": "unit9-normal-after2-1-1", "text_chars": 70, "text_tokens": 9}, "output": {"content_id": "e96810fb-12e7-41fd-8ba4-349ce33c8777", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 601.661894004792, "stylometry": 0.30520300060743466, "scoring": 0.010241994459647685}}
+```
+
+**Did it help?** Yes. The first request dropped from 157–231 seconds to 456–616 ms, under the 1-second prediction. All five criteria stayed MET in all three runs. The first request is still 3–4× slower than later ones because the model's first inference has its own one-time overhead (the detector stage was 602 ms against about 120 ms warm). That remaining overhead is small and was not targeted.
+
+**Cost after the change.** The per-request average falls from 23,230.9 ms to 198.4 ms (after2 run 1). The load doesn't disappear; it moves to a once-per-process startup cost of about 131.7 seconds:
+
+```text
+Before: 23.231 s/run × 100 runs/day                    = 2,323.1 s/day (38.7 min)
+After:  0.198 s/run × 100 runs/day + 131.7 s startup   =    19.8 + 131.7 = 151.5 s/day (2.5 min)
+        (assuming the service starts once per day)
+```
+
+**Tradeoff.** The service is not ready to score for about 131–137 seconds after it starts, and `/health` reports `detector_loaded: false` until then. Anything that imports `app`, including `python test.py`, now loads the model too, unless it runs with `AI201_WARMUP=0`. Each worker process also holds the model in memory from startup, whether or not a request ever arrives.
+
+### Stretch 2 results — load observation
+
+**Built.** `run_load.py` sends requests on a fixed schedule, each on its own thread, so a slow response never slows the send rate. It records each request's status and client-side latency, then reads compute time for those request IDs from `logs/operations.jsonl`. It ran against `AI201_DEBUG=0 python app.py` with rate limiting on, after the warm-up had finished (ready about 140 s after start). Full per-request output is in `results/load_2026-11-11_1612.md`.
+
+| Phase | Rate | Creators | Sent | Status codes | p50 all (ms) | p95 all (ms) | p50 200 (ms) | p95 200 (ms) | max 200 (ms) | Scored | Compute (s) | Compute / scored (ms) |
+|---|---|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| baseline | 10/min | 1 | 10 | 200×10 | 144.0 | 720.0 | 144.0 | 720.0 | 720.0 | 10 | 1.886 | 188.6 |
+| load_a | 100/min | 1 | 100 | 200×10, 429×90 | 9.4 | 139.9 | 140.9 | 156.0 | 156.0 | 10 | 1.29 | 129.0 |
+| load_b | 100/min | 10 | 100 | 200×100 | 136.1 | 154.0 | 136.1 | 154.0 | 184.0 | 100 | 12.397 | 124.0 |
+
+**What changed at 10× the rate.**
+- **Errors.**
+  - *Load A, one creator:* the rate limiter accepted exactly 10 requests (1–10) and returned `429` for all 90 after that, starting at request 11. All 90 rejections are recorded in `logs/audit.jsonl` as `rate_limited`. No request errored or timed out, and there were no `503`s.
+  - *Load B, ten creators:* all 100 requests returned `200`.
+- **Latency.**
+  - *Accepted requests:* no meaningful change. Median accepted latency was 144.0 ms at baseline, 140.9 ms in Load A, and 136.1 ms in Load B.
+  - *Baseline p95 (720 ms):* this is the first request after startup, which pays the first-inference overhead noted in Stretch 1. It is not caused by load.
+  - *Load A:* the overall median dropped to 9.4 ms, because a `429` is returned before any scoring.
+- **Cost.** Compute per scored request stayed flat at 124–189 ms. Total compute scaled with the number of requests actually scored: Load A cost the same as baseline (10 scored), and Load B cost 10× (12.4 s for 100 scored).
+
+**Prediction vs. result.** The Load A prediction held: about 10 `200`s, about 90 `429`s, and no latency change. The Load B prediction was **wrong**: median latency did not rise. At 100 requests per minute, one arrives every 600 ms and each takes about 124 ms to score, so the single model process is busy only about 20% of the time and requests never queue. To see queueing at this request size, the load would need to exceed about 480 requests per minute (60,000 ms ÷ 124 ms).
+
+Unedited examples: one rejected Load A request from `logs/audit.jsonl`, and one Load B request from `logs/operations.jsonl`:
+
+```json
+{"timestamp": "2026-11-12T00:10:48+00:00", "creator_id": "load-160952-load_a-0", "event": "rejected", "status": "rejected", "reason": "rate_limited", "limit": "10 per 1 minute"}
+{"timestamp": "2026-11-12T00:12:05.172+00:00", "request_id": "load-160952-load_b-50", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 127.34, "input": {"creator_id": "load-160952-load_b-9", "text_chars": 69, "text_tokens": 10}, "output": {"content_id": "45bb1ce0-2b72-4b7a-9228-5363adbbf367", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 116.05387800227618, "stylometry": 0.06945499626453966, "scoring": 0.0054779957281425595}}
+```
 
 ---
 

@@ -271,11 +271,28 @@ local detector, then 5 submissions with the detector's `DetectorUnavailable`
 exception injected at the detector boundary. It does not need `python app.py`
 running in another terminal.
 
-Expect the first normal submission to take roughly 100–230 seconds on this
-laptop while the model loads; later submissions take about 100–200 ms.
+The detector model now loads when `app` is imported (Unit 9 stretch), so
+expect about 130–140 seconds before the first request on this laptop. After
+that, submissions take about 100–200 ms; the first one takes about 0.5 s. The
+load is logged as a `startup_warmup` record in `logs/operations.jsonl`. Set
+`AI201_WARMUP=0` to skip it, for example for a quick `python test.py`. Runs
+recorded before the stretch (`before*`, `after`, `after-2`, `after-3`) had no
+warm-up, so their first submission paid the load (100–230 s) instead.
 
 To run the service itself for manual requests instead: `python app.py`, then
-`curl` as shown in *Your first five minutes*.
+`curl` as shown in *Your first five minutes*. `/health` reports
+`detector_loaded: true` once it is ready.
+
+### Load observation (Unit 9 stretch)
+
+```bash
+AI201_DEBUG=0 python app.py     # terminal 1; wait for /health detector_loaded: true
+python run_load.py              # terminal 2; about 3 minutes
+```
+
+This sends three one-minute phases (10/min, then 100/min from one creator,
+then 100/min across ten creators) and writes `results/load_<timestamp>.md`.
+`AI201_DEBUG=0` keeps it to one serving process.
 
 ### What it writes
 
@@ -288,6 +305,7 @@ To run the service itself for manual requests instead: `python app.py`, then
 ### Committed run records
 
 - `results/unit9_before.md`, `unit9_before-2.md`, `unit9_before-3.md`, `unit9_after.md`, `unit9_after-2.md`, `unit9_after-3.md`
+- Stretch: `results/unit9_after2-1.md`, `unit9_after2-2.md`, `unit9_after2-3.md` (startup warm-up) and `results/load_2026-11-11_1612.md` (load observation)
 - `logs/operations.jsonl` and `logs/audit.jsonl`: before run 1 and all three after runs
 - `logs/operations_unit9_before_worktree.jsonl` and `logs/audit_unit9_before_worktree.jsonl`: before runs 2 and 3. These were run from a git worktree checked out at commit `12d390d` (the commit before the stage-timing change), so their log lines were written in that worktree and copied here
 
