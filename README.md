@@ -1633,7 +1633,7 @@ Each stretch item below was declared in this README and committed **before** any
 |---|---|---|---|
 | 1. Warm the detector at startup | Second measured improvement (+2) | `7ee190e` | `13430ab`, `8087a48` |
 | 2. Load observation at about 10× rate | Load observation (+1) | `7ee190e` | `13430ab`, `8087a48` |
-| 3. Full-request latency breakdown | Latency breakdown (+1) | this commit | not built yet |
+| 3. Full-request latency breakdown | Latency breakdown (+1) | `a6b2604` | see *Results* under Stretch 3 |
 
 ### Stretch 1 — Second measured improvement: warm the detector at startup
 
@@ -1744,7 +1744,7 @@ Unedited examples: one rejected Load A request from `logs/audit.jsonl`, and one 
 
 ### Stretch 3 — Full-request latency breakdown
 
-#### Declared (before implementation; nothing below is built yet)
+#### Declared (commit `a6b2604`, before implementation)
 
 **How this differs from work already done.** The required improvement (*The Improvement*) timed only three scoring stages: `detector`, `stylometry`, and `scoring`. That leaves the rest of the request unmeasured, and it treats the detector as one block. This stretch times the **whole** request, splits the detector into its internal steps, and names the dominant stage from a dedicated measurement run.
 
@@ -1766,6 +1766,62 @@ The existing `detector` total stays in the record so earlier results remain comp
 **How it will be measured.** A new script, `run_latency.py`, imports the app in-process (so the startup warm-up runs and is logged). It sends 30 normal submissions through Flask's test client, timing each one client-side, and pairs that with the request's `stage_durations_ms`. It writes `results/latency_<timestamp>.md` with, for each stage, the mean, median, 95th percentile, and share of total request time, and it names the dominant stage. One criteria run (`python run_unit9.py --label after3`) will confirm the extra timers don't change any of the five verdicts.
 
 **Prediction.** `detector_forward` is the dominant stage, at 90% or more of each warm request (about 100–150 ms). `detector_tokenize` is under 2 ms. `validation`, `stylometry`, `scoring`, and `detector_score` are each under 1 ms. `audit_write` is about 0.1–2 ms. `unaccounted` is a few milliseconds. Across a whole process lifetime, the roughly 131-second startup load outweighs everything else until about 1,000 requests have been served (131,000 ms ÷ about 130 ms per request).
+
+#### Results
+
+**Built: what changed.**
+- `detector.py` times its three internal steps: `detector_tokenize` and `detector_forward` in `perplexity`, and `detector_score` in `model_signal`. The timings are kept per thread (`threading.local`), so concurrent requests on the threaded server can't read each other's numbers, and `detector.last_timings()` exposes them.
+- `app.py::submit` adds `validation` and `audit_write` to `stage_durations_ms`, and merges in the detector's step timings after a successful `model_signal` call.
+- `run_latency.py` is the new measurement script.
+- No scoring logic, threshold, or response changed.
+
+**Measured.** `python run_latency.py` sent 30 normal submissions in-process after the startup warm-up. Full output, including every request's breakdown and its operational record, is in `results/latency_2026-11-11_1639.md` (`run_latency.py::main`).
+
+| Stage | Mean (ms) | Median (ms) | p95 (ms) | Share of mean request |
+|---|---:|---:|---:|---:|
+| `validation` | 0.012 | 0.012 | 0.015 | 0.01% |
+| `detector` | 142.837 | 121.257 | 145.152 | 88.14% |
+| ↳ `detector_tokenize` | 1.295 | 0.495 | 0.657 | 0.80% |
+| ↳ `detector_forward` | 141.397 | 120.652 | 144.559 | 87.25% |
+| ↳ `detector_score` | 0.026 | 0.024 | 0.028 | 0.02% |
+| ↳ `detector_other` | 0.120 | 0.114 | 0.159 | 0.07% |
+| `stylometry` | 0.116 | 0.098 | 0.181 | 0.07% |
+| `scoring` | 0.007 | 0.007 | 0.010 | 0.00% |
+| `audit_write` | 8.956 | 8.788 | 10.307 | 5.53% |
+| `unaccounted` | 10.134 | 9.995 | 11.866 | 6.25% |
+| **`client_total`** | 162.063 | 141.324 | 168.556 | 100.00% |
+
+Rows marked ↳ are steps inside `detector` and are not added to the total a second time. `unaccounted` is the client-side request time minus the top-level stages; it covers Flask request/response handling, the `operations.jsonl` write, and JSON serialization. The startup warm-up for this process took 128,749 ms (its `startup_warmup` record is in the results file).
+
+**Dominant stage: `detector_forward`**, the GPT-2 forward pass, at 87.25% of mean request time. Everything to do with reading text and scoring it outside the model (`validation`, `detector_tokenize`, `detector_score`, `stylometry`, `scoring`) adds up to about 1.5 ms, under 1% of the request.
+
+**The second-largest cost is log writes, which was a surprise.** `audit_write` (about 9 ms) and most of `unaccounted` (about 10 ms) are file appends: together about 12% of every warm request.
+- *Component:* `audit.py::_append` and `operations.py::log_event`.
+- *Mechanism:* the repository lives on the Windows drive and is accessed from WSL through `/mnt/c`, where every file open crosses WSL's file-sharing bridge. I checked this directly with 200 appends of the same JSON line from the WSL venv:
+
+  ```text
+  /mnt/c (Windows drive): median 7.167 ms, mean 7.276 ms
+  /tmp   (WSL disk):      median 0.019 ms, mean 0.029 ms
+  ```
+
+  The same append is about 375× slower on `/mnt/c`, which accounts for nearly all of `audit_write` and most of `unaccounted`.
+
+**First request.** The first request after startup took 721.7 ms, of which `detector_forward` was 672.8 ms and `detector_tokenize` 24.5 ms. Both steps have a one-time first-call cost, separate from the startup load. This matches the 456–616 ms first requests in Stretch 1.
+
+**Prediction vs. result.**
+
+| Predicted | Measured | Held? |
+|---|---|---|
+| `detector_forward` dominant, at 90% or more | Dominant, at 87.25% | Dominant: yes. 90%: **no**, because the log writes took a larger share than expected |
+| `detector_tokenize` under 2 ms | 1.295 ms mean (0.495 ms median) | Yes |
+| `validation`, `stylometry`, `scoring`, `detector_score` each under 1 ms | 0.012, 0.116, 0.007, 0.026 ms | Yes |
+| `audit_write` about 0.1–2 ms | 8.956 ms | **No**: the `/mnt/c` file-bridge cost above |
+| `unaccounted` a few ms | 10.134 ms | **No**: same cause, through the `operations.jsonl` write |
+| Startup load outweighs requests until about 1,000 have been served | 128,749 ms ÷ 162 ms ≈ 795 requests | Roughly; it breaks even sooner because the measured per-request time is higher than the 130 ms assumed |
+
+**No regression.** One more criteria run with the extra timers, `python run_unit9.py --label after3` (`results/unit9_after3.md`), gave C1 = 5/5, C2 = 5/5, C3 = 5/5, C4 = 10/10, and C5 = 10/10: all MET, the same as every earlier run.
+
+**What this would point to next.** I did not change this, because it is outside the stretch. Moving the repository (or just `logs/`) onto the WSL filesystem would remove about 19 ms, roughly 12%, from every warm request without touching the model. That is the cheapest latency gain left after the model itself.
 
 ---
 

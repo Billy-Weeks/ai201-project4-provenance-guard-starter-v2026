@@ -294,6 +294,16 @@ This sends three one-minute phases (10/min, then 100/min from one creator,
 then 100/min across ten creators) and writes `results/load_<timestamp>.md`.
 `AI201_DEBUG=0` keeps it to one serving process.
 
+### Latency breakdown (Unit 9 stretch)
+
+```bash
+python run_latency.py           # in-process; no server needed; about 2.5 minutes
+```
+
+This loads the app (including the startup warm-up), sends 30 normal
+submissions, and writes `results/latency_<timestamp>.md` with each stage's
+mean, median, 95th percentile, and share of request time.
+
 ### What it writes
 
 | Output | Contents |
@@ -305,7 +315,7 @@ then 100/min across ten creators) and writes `results/load_<timestamp>.md`.
 ### Committed run records
 
 - `results/unit9_before.md`, `unit9_before-2.md`, `unit9_before-3.md`, `unit9_after.md`, `unit9_after-2.md`, `unit9_after-3.md`
-- Stretch: `results/unit9_after2-1.md`, `unit9_after2-2.md`, `unit9_after2-3.md` (startup warm-up) and `results/load_2026-11-11_1612.md` (load observation)
+- Stretch: `results/unit9_after2-1.md`, `unit9_after2-2.md`, `unit9_after2-3.md` (startup warm-up) and `results/load_2026-11-11_1612.md` (load observation); `results/latency_2026-11-11_1639.md` and `results/unit9_after3.md` (latency breakdown and its no-regression check)
 - `logs/operations.jsonl` and `logs/audit.jsonl`: before run 1 and all three after runs
 - `logs/operations_unit9_before_worktree.jsonl` and `logs/audit_unit9_before_worktree.jsonl`: before runs 2 and 3. These were run from a git worktree checked out at commit `12d390d` (the commit before the stage-timing change), so their log lines were written in that worktree and copied here
 
