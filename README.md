@@ -1471,6 +1471,11 @@ python run_unit9.py --label after    # run after the improvement
 
 Each run sends 10 normal submissions through the real `/submit` route with the real local detector, then 5 submissions with the detector's existing `DetectorUnavailable` exception injected at the detector boundary (`unittest.mock.patch` on `detector.model_signal`). This tests the production error path without adding a public test switch to the service. The run writes `results/unit9_<label>.md`, and the route writes `logs/operations.jsonl` and `logs/audit.jsonl`.
 
+**What the app runs from.** Provenance Guard is the Flask web service in `app.py`, run locally from the WSL Python 3.12.3 `.venv` with the `gpt2` model on this laptop. It runs in two ways:
+
+- **In-process:** `run_unit9.py` imports `app` and calls `/submit` through Flask's test client (`app.test_client()`). No server is started and no network is used, but the same `app.py::submit` code runs and writes the same logs. Every criteria run (before, after, and the stretch after2 runs) uses this method, so `python app.py` does not need to be running.
+- **As a server:** `python app.py` serves on `http://127.0.0.1:5000` for real HTTP requests. Only the stretch load observation (`run_load.py`) and manual `curl` use this, because a load test needs concurrent HTTP traffic and the real rate limiter in front of the route.
+
 **How the three before runs were produced.** Before run 1 was run and committed before the improvement (`12d390d`, "Record unit 9 before results"). I only ran before once at that point, so after committing the improvement I created a separate git worktree checked out at `12d390d` (the commit immediately before the stage-timing change in `b25cdec`) and ran `python run_unit9.py --label before-2` and `--label before-3` there. Those reports were copied into `results/`, and their log lines are committed as `logs/operations_unit9_before_worktree.jsonl` and `logs/audit_unit9_before_worktree.jsonl`. You can confirm they ran on the pre-improvement code: their operational entries have no `stage_durations_ms` field.
 
 ## Instrumentation
@@ -1620,11 +1625,19 @@ No Unit 9 criterion was missed. The tested failure path returns a safe response 
 
 ---
 
-## Unit 9 Stretch — Declared
+## Unit 9 Stretch
 
-Declared before any implementation. Nothing below is built yet; results will be added under each item once measured.
+Each stretch item below was declared in this README and committed **before** any of its implementation. The commit for each declaration is named in its section, so the order can be checked in the git history. Each item has a *Declared* part (unchanged from the declaration commit, apart from being moved under its item) followed by a *Results* part once it was built and measured.
+
+| Stretch | Rubric item | Declared | Built / measured |
+|---|---|---|---|
+| 1. Warm the detector at startup | Second measured improvement (+2) | `7ee190e` | `13430ab`, `8087a48` |
+| 2. Load observation at about 10× rate | Load observation (+1) | `7ee190e` | `13430ab`, `8087a48` |
+| 3. Full-request latency breakdown | Latency breakdown (+1) | this commit | not built yet |
 
 ### Stretch 1 — Second measured improvement: warm the detector at startup
+
+#### Declared (commit `7ee190e`, before implementation)
 
 **Diagnosis it follows from.** The stage timing added in *The Improvement* showed that the first normal request in every run is 1,000× slower than the rest: in after runs 1–3 the detector stage of the first request took 231,048 ms, 164,574 ms, and 157,660 ms, while warm detector calls took about 100–185 ms. The component is `detector.model_signal`. The mechanism is that it calls `detector._load()` lazily, so the first user request to reach the detector pays for loading the 526 MB `gpt2` model.
 
@@ -1634,29 +1647,7 @@ Declared before any implementation. Nothing below is built yet; results will be 
 
 **Prediction.** All five criteria stay MET. The first normal request drops from 157–231 s to warm speed (under 1 s). The per-request cost average in *What It Costs* drops to roughly the warm average, and the model-load time appears once per process as the `startup` event. The expected tradeoff is that the service takes a minute or more to become ready after starting.
 
-### Stretch 2 — Load observation at about ten times the normal rate
-
-**Normal rate.** The service's rate limit is 10 submissions per minute per `creator_id` (`config.RATE_LIMIT_PER_MINUTE`), so normal use is defined as **10 requests per minute**.
-
-**The test.** With the service running through `python app.py` (after Stretch 1, so the model is already warm), a small load script will send:
-
-| Phase | Rate | Duration | Callers |
-|---|---|---|---|
-| Baseline | 10 requests/minute | 1 minute | one `creator_id` |
-| Load A | 100 requests/minute (10×) | 1 minute | one `creator_id`: the rate limiter should engage |
-| Load B | 100 requests/minute (10×) | 1 minute | ten `creator_id`s at 10/minute each: the limiter should not engage, so the detector takes the full load |
-
-**What will be reported for each phase, with numbers:** count of each status code (`200`, `429`, `503`, other), median and 95th-percentile latency, total compute seconds from `logs/operations.jsonl`, and whether any request errored or timed out. If a measure doesn't change, that will be reported as "no change" with the numbers.
-
-**Prediction.** Load A returns about 10 `200`s and about 90 `429`s with no latency change for the accepted requests. Load B returns all `200`s, but median latency rises because one local model process scores every request.
-
----
-
-## Unit 9 Stretch — Results
-
-Both items were built and measured after the declaration above was committed (`7ee190e`).
-
-### Stretch 1 results — warm the detector at startup
+#### Results (implementation `13430ab`, evidence `8087a48`)
 
 **Built: what changed.**
 - `app.py::_warm_detector` calls `detector.warm_up()` when the app module loads. It times the load and writes a `startup_warmup` record to `logs/operations.jsonl`. If the model can't load, it logs a `503` startup record and the service still starts, so `/submit` keeps the safe `503` path from the main extension.
@@ -1704,7 +1695,25 @@ After:  0.198 s/run × 100 runs/day + 131.7 s startup   =    19.8 + 131.7 = 151.
 
 **Tradeoff.** The service is not ready to score for about 131–137 seconds after it starts, and `/health` reports `detector_loaded: false` until then. Anything that imports `app`, including `python test.py`, now loads the model too, unless it runs with `AI201_WARMUP=0`. Each worker process also holds the model in memory from startup, whether or not a request ever arrives.
 
-### Stretch 2 results — load observation
+### Stretch 2 — Load observation at about ten times the normal rate
+
+#### Declared (commit `7ee190e`, before implementation)
+
+**Normal rate.** The service's rate limit is 10 submissions per minute per `creator_id` (`config.RATE_LIMIT_PER_MINUTE`), so normal use is defined as **10 requests per minute**.
+
+**The test.** With the service running through `python app.py` (after Stretch 1, so the model is already warm), a small load script will send:
+
+| Phase | Rate | Duration | Callers |
+|---|---|---|---|
+| Baseline | 10 requests/minute | 1 minute | one `creator_id` |
+| Load A | 100 requests/minute (10×) | 1 minute | one `creator_id`: the rate limiter should engage |
+| Load B | 100 requests/minute (10×) | 1 minute | ten `creator_id`s at 10/minute each: the limiter should not engage, so the detector takes the full load |
+
+**What will be reported for each phase, with numbers:** count of each status code (`200`, `429`, `503`, other), median and 95th-percentile latency, total compute seconds from `logs/operations.jsonl`, and whether any request errored or timed out. If a measure doesn't change, that will be reported as "no change" with the numbers.
+
+**Prediction.** Load A returns about 10 `200`s and about 90 `429`s with no latency change for the accepted requests. Load B returns all `200`s, but median latency rises because one local model process scores every request.
+
+#### Results (implementation `13430ab`, evidence `8087a48`)
 
 **Built.** `run_load.py` sends requests on a fixed schedule, each on its own thread, so a slow response never slows the send rate. It records each request's status and client-side latency, then reads compute time for those request IDs from `logs/operations.jsonl`. It ran against `AI201_DEBUG=0 python app.py` with rate limiting on, after the warm-up had finished (ready about 140 s after start). Full per-request output is in `results/load_2026-11-11_1612.md`.
 
@@ -1732,6 +1741,31 @@ Unedited examples: one rejected Load A request from `logs/audit.jsonl`, and one 
 {"timestamp": "2026-11-12T00:10:48+00:00", "creator_id": "load-160952-load_a-0", "event": "rejected", "status": "rejected", "reason": "rate_limited", "limit": "10 per 1 minute"}
 {"timestamp": "2026-11-12T00:12:05.172+00:00", "request_id": "load-160952-load_b-50", "event": "submission_completed", "stage": "completed", "status_code": 200, "duration_ms": 127.34, "input": {"creator_id": "load-160952-load_b-9", "text_chars": 69, "text_tokens": 10}, "output": {"content_id": "45bb1ce0-2b72-4b7a-9228-5363adbbf367", "guess": "human", "status": "decided"}, "error_type": null, "stage_durations_ms": {"detector": 116.05387800227618, "stylometry": 0.06945499626453966, "scoring": 0.0054779957281425595}}
 ```
+
+### Stretch 3 — Full-request latency breakdown
+
+#### Declared (before implementation; nothing below is built yet)
+
+**How this differs from work already done.** The required improvement (*The Improvement*) timed only three scoring stages: `detector`, `stylometry`, and `scoring`. That leaves the rest of the request unmeasured, and it treats the detector as one block. This stretch times the **whole** request, splits the detector into its internal steps, and names the dominant stage from a dedicated measurement run.
+
+**Stages that will be timed for each request**, all recorded in `stage_durations_ms` in `logs/operations.jsonl`:
+
+| Stage | Where | What it covers |
+|---|---|---|
+| `validation` | `app.py::submit` | Reading the JSON body and checking `text`/`creator_id`/length, before any signal runs |
+| `detector_tokenize` | `detector.py::perplexity` | Turning the text into GPT-2 token IDs |
+| `detector_forward` | `detector.py::perplexity` | The GPT-2 forward pass (`model(input_ids, labels=input_ids)`) |
+| `detector_score` | `detector.py::model_signal` | Converting the loss to perplexity, then to a 0–1 score |
+| `stylometry` | `app.py::submit` | Already timed; kept |
+| `scoring` | `app.py::submit` | Already timed; kept |
+| `audit_write` | `app.py::submit` | `audit.log_decision` appending to `logs/audit.jsonl` |
+| `unaccounted` | `run_latency.py` | Client-side request time minus the sum of all stages above: Flask request/response handling, the `operations.jsonl` write (a record can't time its own write), and JSON serialization |
+
+The existing `detector` total stays in the record so earlier results remain comparable. The startup model load is already measured by the `startup_warmup` record from Stretch 1 and will be reported beside the per-request breakdown, not mixed into it.
+
+**How it will be measured.** A new script, `run_latency.py`, imports the app in-process (so the startup warm-up runs and is logged). It sends 30 normal submissions through Flask's test client, timing each one client-side, and pairs that with the request's `stage_durations_ms`. It writes `results/latency_<timestamp>.md` with, for each stage, the mean, median, 95th percentile, and share of total request time, and it names the dominant stage. One criteria run (`python run_unit9.py --label after3`) will confirm the extra timers don't change any of the five verdicts.
+
+**Prediction.** `detector_forward` is the dominant stage, at 90% or more of each warm request (about 100–150 ms). `detector_tokenize` is under 2 ms. `validation`, `stylometry`, `scoring`, and `detector_score` are each under 1 ms. `audit_write` is about 0.1–2 ms. `unaccounted` is a few milliseconds. Across a whole process lifetime, the roughly 131-second startup load outweighs everything else until about 1,000 requests have been served (131,000 ms ÷ about 130 ms per request).
 
 ---
 
